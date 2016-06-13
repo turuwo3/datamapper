@@ -103,13 +103,19 @@ abstract class Driver {
 * @return PDOStatement;
 */
 	protected function prepare($query){
-		$sql = $query['sql'];
+		$sql = $query->sql();
 		$statement = $this->connect()->prepare($sql);
-		$bindValue = $query['bindValue'];
-		foreach($bindValue as $k => $v){
-			$statement->bindValue($k, $v);
+		$bindValue = $query->getBindValue();;
+		foreach($bindValue as $type){
+			foreach($type as $k => $v){
+				$statement->bindValue($k, $v);
+			}
 		}
 		return $statement;
+	}
+
+	public function run($query){
+		return $this->execute($query);
 	}
 
 /**

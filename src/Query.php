@@ -16,13 +16,9 @@ class Query extends QueryBuilder {
 	}
 
 	public function execute(){
-		$statement = $this->driver->prepare($this);
-		$bindValue = $this->getBindValue($this->type());
-		foreach($bindValue as $k => $v){
-			$statement->bindValue($k, $v);
-		}
+		$statement = $this->driver->run($this);
 
-		return $statement->execute();
+		return $statement;
 	}
 
 

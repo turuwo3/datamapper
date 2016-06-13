@@ -16,6 +16,7 @@ class MySql extends Driver {
 		$password = $config['password'];
 		$this->connection = new PDO($dsn, $user, $password);
 		$this->connection->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+		$this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 	}
 
 	protected function connect(){

@@ -17,11 +17,7 @@ class QueryBuilder {
 
 	private $type = 'select';
 
-	private $bindValue = [
-		'insert' => null,
-		'update' => null,
-		'where' => null
-	];
+	private $bindValue = [];
 
 
 	public function sql(){
@@ -33,22 +29,9 @@ class QueryBuilder {
 	public function type(){
 		return $this->type;
 	}
-	
-	public function hasBindValue($type){
-		if(!empty($this->bindValue[$type])){
-			return true;
-		}
-		return false;
-	}
 
 	public function getBindValue($type = null){
-		if($type === null){
-			return $this->bindValue;
-		}
-		if(empty($this->bindValue[$type])){
-			return new Exception("bindValue {$type} not found");
-		}
-		return $this->bindValue[$type];
+		return $this->bindValue;
 	}
 
 	public function hasParts($type){
@@ -115,7 +98,8 @@ class QueryBuilder {
 		$whereKey = $whereExpr['key'];
 
 		$whereBindKey = ":{$whereKey}";
-		$this->bind($whereBindKey, $conditions[key($conditions)], 'where');
+		$whereBindValue = $conditions[key($conditions)];
+		$this->bind($whereBindKey, $whereBindValue, gettype($whereBindValue));
 		
 		$key = str_replace(' ', '', key($conditions));
 		$this->parts['where'] .= ' ' . "{$type} {$key}{$whereBindKey}";
@@ -179,7 +163,7 @@ class QueryBuilder {
 	public function insert($values){
 		
 		foreach($values as $k => $v){
-			$this->bind(":{$k}", $v, "insert");
+			$this->bind(":{$k}", $v, gettype($v));
 			$this->parts['insert']['values'][] = ":{$k}";
 		}	
 		$this->parts['insert']['columns'] = implode(',', array_keys($values));
@@ -209,7 +193,7 @@ class QueryBuilder {
 	public function set($values){
 		foreach($values as $k => $v){
 			$this->parts['set'][] = "{$k}=:{$k}";
-			$this->bind(":{$k}", $v, 'update');
+			$this->bind(":{$k}", $v, gettype($v));
 		}
 
 		$this->type = 'update';
