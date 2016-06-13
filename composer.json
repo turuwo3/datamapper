@@ -1,0 +1,11 @@
+{
+	"name": "turuwo3/datamapper",
+	"description": "datamapper!",
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"TRW\\DataMapper\\": "src"
+		}
+	}
+
+}

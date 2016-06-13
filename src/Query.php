@@ -1,0 +1,29 @@
+<?php
+namespace TRW\DataMapper;
+
+use TRW\DataMapper\QueryBuilder;
+use TRW\DataMapper\MapperInterface;
+
+class Query extends QueryBuilder {
+
+	private $mapper;
+	
+	private $driver;
+
+	public function __construct(MapperInterface $mapper){
+		$this->mapper = $mapper;
+		$this->driver = $mapper->getConnection();
+	}
+
+	public function execute(){
+		$statement = $this->driver->prepare($this);
+		$bindValue = $this->getBindValue($this->type());
+		foreach($bindValue as $k => $v){
+			$statement->bindValue($k, $v);
+		}
+
+		return $statement->execute();
+	}
+
+
+}
