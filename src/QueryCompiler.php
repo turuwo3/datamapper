@@ -22,6 +22,9 @@ class QueryCompiler {
 
 		$sql = "SELECT {$columns}";
 		$sql .= ' ' . $this->buildFrom($query);
+		if($query->hasParts('join')){
+			$sql .= ' ' . $this->buildJoin($query);
+		}
 		if($query->hasParts('where')){
 			$sql .= ' ' . $this->buildWhere($query);
 		}
@@ -46,10 +49,15 @@ class QueryCompiler {
 		return $sql;
 	}
 
-	private function buildWhere($query){
-		$where = $query->getParts('where');
+	private function buildJoin($query){
+		$joins = $query->getParts('join');
+		$sql = implode(' ', $joins);
 
-		$sql = "{$where}";
+		return $sql;
+	}
+
+	private function buildWhere($query){
+		$sql = implode(' ', $query->getParts('where'));
 
 		return $sql;
 	}
@@ -94,7 +102,7 @@ class QueryCompiler {
 	private function buildInto($query){
 		$parts = $query->getParts('insert');
 		$into = $parts['into'];
-		$columns = $parts['columns'];
+		$columns = implode(',', $parts['columns']);
 		$sql = "INTO {$into} ({$columns})";
 
 		return $sql;

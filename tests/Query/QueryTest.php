@@ -35,10 +35,9 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$d->query("DELETE FROM comments");
 	
 		$d->query("INSERT INTO users (id, name) VALUES 
-			(1, 'bar'), (2, 'foo'), (3, 'hoge')");
+			(1, 'foo'), (2, 'bar'), (3, 'hoge')");
 		$d->query("INSERT INTO comments (id, text, user_id) VALUES 
-			(1, 'bar comment', 1), (2, 'bar comment' 1),
-			(3, 'foo comment', 2)");
+			(1, 'foo comment', 1), (2, 'foo comment', 1),(3, 'bar comment', 2)");
 	}
 
 	public function testSelectSql(){
@@ -53,7 +52,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$sql = $query->sql();
 		
 		$this->assertEquals(
-			"SELECT id,name FROM users  WHERE id<=:id AND name=:name LIMIT 2 OFFSET 3 ORDER BY id DESC", $sql);
+			"SELECT id,name FROM users WHERE id<=:id AND name=:name LIMIT 2 OFFSET 3 ORDER BY id DESC", $sql);
 
 		$this->assertEquals([
 				'integer'=>[':id'=>2],
@@ -73,13 +72,16 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$sql = $query->sql();
 		$this->assertEquals(
-			"SELECT name FROM users,profiles  WHERE id=:id AND sex=:sex NOT name=:name OR age=:age", $sql);
+			"SELECT name FROM users,profiles WHERE id=:id AND sex=:sex NOT name=:name OR age=:age", $sql);
 		$this->assertEquals([
 				'integer'=>[':id'=>2, ':age'=>20],
 				'string' =>[':name'=>'bar', ':sex'=>'man']
 			],
 			$query->getBindValue());
 	}
+
+
+
 
 
 	public function testInsertSql(){
@@ -106,7 +108,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$sql = $query->sql();
 		
-		$this->assertEquals("UPDATE users SET name=:name,age=:age  WHERE id=:id", $sql);
+		$this->assertEquals("UPDATE users SET name=:name,age=:age WHERE id=:id", $sql);
 		$this->assertEquals([
 				'integer'=>[':id'=>2,':age'=>11],
 				'string'=>[':name'=>'bar']
@@ -123,7 +125,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$sql = $query->sql();
 
-		$this->assertEquals("DELETE FROM users  WHERE id=:id OR name=:name",$sql);
+		$this->assertEquals("DELETE FROM users WHERE id=:id OR name=:name",$sql);
 		$this->assertEquals([
 				'integer'=>[':id'=>1],
 				'string'=>[':name'=>'bar']
@@ -131,16 +133,35 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 			$query->getBindValue());
 	}
 
-
+/**
+* $d->query("INSERT INTO users (id, name) VALUES 
+*		(1, 'bar'), (2, 'foo'), (3, 'hoge')");
+* $d->query("INSERT INTO comments (id, text, user_id) VALUES 
+*		(1, 'bar comment', 1), (2, 'bar comment' 1),
+*		(3, 'foo comment', 2)");
+*/
 	public function testSelect(){
 		$query = new Query(self::$mapper);
 
-		$query->select(['id','name'])
-			->from(['users']);
+		$query->select(['u.id','u.name'])
+			->from(['users u']);
 
 		$result = $query->execute();
 
-		print_r($result->fetchAll());
+		$this->assertEquals([
+			0=>[
+				'id'=>'1',
+				'name'=>'foo'
+			],
+			1=>[
+				'id'=>'2',
+				'name'=>'bar'
+			],
+			2=>[
+				'id'=>'3',
+				'name'=>'hoge'
+			]
+		],$result->fetchAll());
 	}
 	
 	
@@ -149,12 +170,32 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$query->select(['name'])
 			->from(['users'])
-			->where(['id ='=>1]);
+			->where(['id <='=>2])
+			->andWhere(['name ='=>'bar']);
 
 		$result = $query->execute();
-
-		print_r($result->fetchAll());
+		
+		$this->assertEquals([
+			0=>[
+				'name'=>'bar'
+			]
+		], $result->fetchAll());
 	}
+
+
+	public function testJoinSql(){
+		$query = new Query(self::$mapper);
+		
+		$query->select(['u.*', 'c.*'])
+			->from(['users u', 'comments c'])
+		//	->join(['comments c'])
+			->where(['c.user_id ='=>1]);
+print_r([$query->sql(), $query->getBindValue()]);
+
+		//$result = $query->execute();
+//		print_r($result->fetchAll());
+	}
+
 
 }
 

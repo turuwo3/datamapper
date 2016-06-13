@@ -102,13 +102,13 @@ class QueryBuilder {
 		$this->bind($whereBindKey, $whereBindValue, gettype($whereBindValue));
 		
 		$key = str_replace(' ', '', key($conditions));
-		$this->parts['where'] .= ' ' . "{$type} {$key}{$whereBindKey}";
+		$parts = "{$type} {$key}{$whereBindKey}";
 
-		return $this;
+		return $parts;
 	}
 
 	public function where($conditions){
-		$this->conjugate($conditions, 'WHERE');
+		$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
 		
 		array_shift($conditions);
 		if(!empty($conditions)){
@@ -119,19 +119,19 @@ class QueryBuilder {
 	}
 
 	public function andWhere($conditions){
-		$this->conjugate($conditions, 'AND');
+		$this->parts['where'][] = $this->conjugate($conditions, 'AND');
 		
 		return $this;
 	}
 
 	public function orWhere($conditions){
-		$this->conjugate($conditions, 'OR');
+		$this->parts['where'][] = $this->conjugate($conditions, 'OR');
 		
 		return $this;
 	}
 
 	public function notWhere($conditions){
-		$this->conjugate($conditions, 'NOT');
+		$this->parts['where'][] = $this->conjugate($conditions, 'NOT');
 		
 		return $this;
 	}
@@ -165,8 +165,8 @@ class QueryBuilder {
 		foreach($values as $k => $v){
 			$this->bind(":{$k}", $v, gettype($v));
 			$this->parts['insert']['values'][] = ":{$k}";
+			$this->parts['insert']['columns'][] = $k;
 		}	
-		$this->parts['insert']['columns'] = implode(',', array_keys($values));
 		
 		$this->type = 'insert';
 		
