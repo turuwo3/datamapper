@@ -25,7 +25,9 @@ class QueryBuilder {
 	public function sql(){
 		$compiler = new QueryCompiler($this);
 
-		return $compiler->compile();
+		$sql = $compiler->compile();
+
+		return $sql;
 	}
 
 	public function type(){
@@ -63,6 +65,10 @@ class QueryBuilder {
 
 	public function placeHolder($token = null){
 		return $this->valueBinder()->placeHolder($token);
+	}
+
+	public function resetCount(){
+		$this->valueBinder()->resetCount();
 	}
 
 	public function select($fields){
@@ -127,14 +133,13 @@ class QueryBuilder {
 		return $parts;
 	}
 
-	public function where($conditions){
-		$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
-		
-		array_shift($conditions);
-		if(!empty($conditions)){
-			$this->andWhere($conditions, 'AND');
+	public function where($conditions, $overwrite = false){
+		if(!$overwrite){
+			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
 		}
-			
+		$this->parts['where'] = [];
+		$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
+
 		return $this;
 	}
 
@@ -156,12 +161,20 @@ class QueryBuilder {
 		return $this;
 	}
 
-	public function order($order){
-		$this->parts['order'] = $order;
+	private function makeOrder($order, $type){
+		return "{$order} {$type}";
+	}
+
+	public function orderDesc($order){
+		$this->parts['order'] = $this->makeOrder($order, 'DESC');
 	
 		$this->type = 'select';
 
 		return $this;
+	}
+
+	public function orderAsc($order){
+		$this->parts['order'] = $this->makeOrder($order, 'ASC');
 	}
 
 	public function offset($offset){
@@ -184,7 +197,7 @@ class QueryBuilder {
 *	'name', 'age'
 * ];
 */
-	public function insert($columns){
+	public function insert(array $columns){
 		$this->parts['insert']['columns'] = $columns;	
 		
 		$this->type = 'insert';
@@ -193,6 +206,9 @@ class QueryBuilder {
 	}
 
 	public function into($table){
+		if($this->type !== 'insert'){
+			throw Exception('type is not an insert');
+		}
 		$this->parts['insert']['into'] = $table;
 
 		$this->type = 'insert';
@@ -205,7 +221,10 @@ class QueryBuilder {
 *	'foo', 20
 * ];
 */
-	public function values($values){
+	public function values(array $values){
+		if($this->type !== 'insert'){
+			throw Exception('type is not an insert');
+		}
 		$this->parts['insert']['values'] = $values;
 
 		$this->type = 'insert';
@@ -228,7 +247,10 @@ class QueryBuilder {
 *	'age' => 10
 * ];
 */
-	public function set($values){
+	public function set(array $values){
+		if($this->type !== 'update'){
+			throw Exception('type is not an update');
+		}
 		$this->parts['set'] = $values;
 
 		$this->type = 'update';

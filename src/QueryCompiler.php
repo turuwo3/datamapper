@@ -38,6 +38,8 @@ class QueryCompiler {
 			$sql .= ' ' . $this->buildOrder($query);
 		}
 
+		$query->resetCount();
+
 		return $sql;
 	}
 

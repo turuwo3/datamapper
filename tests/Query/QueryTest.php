@@ -44,10 +44,11 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$query = new Query(self::$mapper);
 		$query->select(['id','name'])
 			->from(['users'])
-			->where(['id <='=> 2, 'name ='=>'bar' ])
+			->where(['id <='=> 2])
+			->andWhere(['name ='=>'bar'])
 			->limit(2)
 			->offset(3)
-			->order('id DESC');
+			->orderDesc('id');
 
 		$sql = $query->sql();
 		
@@ -80,6 +81,19 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 			],
 			$query->getBindValue());
 */
+		
+		$query = new Query(self::$mapper);
+		$query->select(['name'])
+			->from('users')
+			->where(['id ='=> 2])
+			->andWhere(['sex ='=>'man'])
+			->notWhere(['name ='=>'bar'])
+			->orWhere(['age ='=>20])
+			->where(['id ='=>3], true);
+
+		$sql = $query->sql();
+		$this->assertEquals(
+			"SELECT name FROM users WHERE id = :c0", $sql);
 	}
 
 
@@ -200,15 +214,20 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$query->select(['u.id', 'u.name'])
 			->from(['users as u'])
-			->rightJoin('comments as c', ['c.user_id ='=>1]);
+			->innerJoin('comments as c', ['c.user_id ='=>1])
+			->leftJoin('comments as c', ['c.text ='=>''], true);
 
-//		$sql = $query->sql();
+		$sql = $query->sql();
 
-//		print_r([$sql, $query->valueBinder()->getBinding()]);
+		print_r([$sql, $query->valueBinder()->getBinding()]);
 
 		$result = $query->execute();
+		$result->fetchAll();
 
-		print_r($result->fetchAll());
+		print_r([$sql, $query->valueBinder()->getBinding()]);
+		
+		$result = $query->execute();
+		$result->fetchAll();
 	}
 
 }

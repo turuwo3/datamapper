@@ -20,8 +20,12 @@ class ValueBinder {
 		return $token;
 	}
 
-	public function reset(){
+	public function refresh(){
 		$this->binding = [];
+		$this->bindingCounter = 0;
+	}
+
+	public function resetCount(){
 		$this->bindingCounter = 0;
 	}
 
