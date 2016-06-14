@@ -24,8 +24,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	public static function setUpBeforeClass(){
 		$config = require '../config.php';
-		$driver = new MySql($config['MySql']);
-		self::$mapper = new MockMapper($driver);
+		self::$mapper = new MockMapper(new MySql($config['MySql']));
 	}
 
 	public function setUp(){
@@ -40,213 +39,240 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 			(1, 'foo comment', 1), (2, 'foo comment', 1),(3, 'bar comment', 2)");
 	}
 
-	public function testSelectSql(){
-		$query = new Query(self::$mapper);
-		$query->select(['id','name'])
-			->from(['users'])
-			->where(['id <='=> 2])
-			->andWhere(['name ='=>'bar'])
-			->limit(2)
-			->offset(3)
-			->orderDesc('id');
 
-		$sql = $query->sql();
-		
-		$this->assertEquals(
-			"SELECT id,name FROM users WHERE id <= :c0 AND name = :c1 LIMIT 2 OFFSET 3 ORDER BY id DESC", $sql);
-/*
-		$this->assertEquals([
-				'integer'=>[':id'=>2],
-				'string'=>[':name'=>'bar'],
-			],
-			$query->getBindValue());
-*/
-
-
-		$query = new Query(self::$mapper);
-		$query->select(['name'])
-			->from(['users', 'profiles'])
-			->where(['id ='=> 2])
-			->andWhere(['sex ='=>'man'])
-			->notWhere(['name ='=>'bar'])
-			->orWhere(['age ='=>20]);
-
-		$sql = $query->sql();
-		$this->assertEquals(
-			"SELECT name FROM users,profiles WHERE id = :c0 AND sex = :c1 NOT name = :c2 OR age = :c3", $sql);
-/*
-		$this->assertEquals([
-				'integer'=>[':id'=>2, ':age'=>20],
-				'string' =>[':name'=>'bar', ':sex'=>'man']
-			],
-			$query->getBindValue());
-*/
-		
-		$query = new Query(self::$mapper);
-		$query->select(['name'])
-			->from('users')
-			->where(['id ='=> 2])
-			->andWhere(['sex ='=>'man'])
-			->notWhere(['name ='=>'bar'])
-			->orWhere(['age ='=>20])
-			->where(['id ='=>3], true);
-
-		$sql = $query->sql();
-		$this->assertEquals(
-			"SELECT name FROM users WHERE id = :c0", $sql);
-	}
-
-
-
-
-
-	public function testInsertSql(){
-		$query = new Query(self::$mapper);
-		$query->insert(['name', 'age'])
-			->into('users')
-			->values(['foo', 29]);
-
-		$sql = $query->sql();
-		
-		$this->assertEquals("INSERT INTO users (name,age) VALUES (:c0,:c1)",$sql);
-/*
-		$this->assertEquals([
-				'string'=>[':name'=>'foo'],
-				'integer'=>[':age'=>20]
-			],
-			$query->getBindValue());
-*/
-	}
-
-
-	public function testUpdateSql(){
-		$query = new Query(self::$mapper);
-		$query->update('users')
-			->set(['name'=>'bar', 'age'=>11])
-			->where(['id ='=>2]);
-
-		$sql = $query->sql();
-		
-		$this->assertEquals("UPDATE users SET name = :c0,age = :c1 WHERE id = :c2", $sql);
-/*
-		$this->assertEquals([
-				':c0'=>[
-					'type'=>'string',
-				],
-			],
-			$query->valueBinder()->getBinding());
-*/
-	}
-
-
-	public function testDeleteSql(){
-		$query = new Query(self::$mapper);
-		$query->delete('users')
-			->where(['id ='=>1])
-			->orWhere(['name ='=>'bar']);
-
-		$sql = $query->sql();
-
-		$this->assertEquals("DELETE FROM users WHERE id = :c0 OR name = :c1",$sql);
-/*
-		$this->assertEquals([
-				'integer'=>[':id'=>1],
-				'string'=>[':name'=>'bar']
-			],
-			$query->getBindValue());
-*/
-	}
-
-/**
-* $d->query("INSERT INTO users (id, name) VALUES 
-*		(1, 'bar'), (2, 'foo'), (3, 'hoge')");
-* $d->query("INSERT INTO comments (id, text, user_id) VALUES 
-*		(1, 'bar comment', 1), (2, 'bar comment' 1),
-*		(3, 'foo comment', 2)");
-*/
 	public function testSelect(){
 		$query = new Query(self::$mapper);
 
-		$query->select(['u.id','u.name'])
-			->from(['users u']);
+		$query->select('u.name')
+			->select('u.id')
+			->from('users u')
+			->where(['name ='=>'foo'])
+			->andWhere(['id ='=>1]);
+
+		$result = $query->execute();
+
+		$this->assertEquals(
+			"SELECT u.name,u.id FROM users u WHERE name = :c0 AND id = :c1",
+			$query->sql());
+		$this->assertEquals([
+			[
+				'id' => 1,
+				'name' => 'foo'
+			]	
+		],$result->fetchAll());
+
+
+// case overwrite
+		$query->clear();
+		$query->select(['name'])
+			->from(['users'])
+			->where(['name ='=>'foo'])
+			->andWhere(['id ='=>1])
+			->where(['id ='=>2], true)
+			->orderDesc('id')
+			->limit(1);
+		
+		$result = $query->execute();
+		
+		$this->assertEquals(
+			"SELECT name FROM users WHERE id = :c0 ORDER BY id DESC LIMIT 1",
+			$query->sql());
+		$this->assertEquals([
+			[
+				'name' => 'bar'
+			]	
+		],$result->fetchAll());
+
+
+	}
+
+
+	public function testSelectException(){
+		$query = new Query(self::$mapper);
+		
+		try{
+			$query->select('name')
+				->from('users')
+				->andWhere(['id ='=>2]);
+				
+				$this->fail('error');
+		}catch(Exception $e){
+			$this->assertEquals('where statement is not defined.
+				 please execute where method previosuly',
+				$e->getMessage());
+		}
+
+	}
+
+
+	public function testInsert(){
+		$query = new Query(self::$mapper);
+
+		$query->insert('name')
+			->insert(['id','age'])
+			->into('users')
+			->values('new Row')
+			->values([4,20]);
+
+		$statement = $query->execute();
+			
+		$this->assertInstanceOf('PDOStatement', $statement);
+
+		$query->clear();
+		$query->select(['id','name','age'])
+			->from('users')
+			->where(['id ='=>4]);
+
+		$newRow = $query->execute();
+
+		$this->assertEquals([
+			[
+				'id'=>4,
+				'name'=>'new Row',
+				'age'=>'20'
+			]
+		],$newRow->fetchAll());
+
+
+//case overrode
+		$query->clear();
+		$query->insert(['id','name'])
+			->into('users')
+			->values([10,'new Row'])
+			->insert(['id','age'],true)
+			->values([5,100], true);
+
+		$statement = $query->execute();
+			
+		$this->assertInstanceOf('PDOStatement', $statement);
+
+		$query->clear();
+		$query->select(['id','name','age'])
+			->from('users')
+			->where(['id ='=>5]);
+
+		$newRow = $query->execute();
+
+		$this->assertEquals([
+			[
+				'id'=>5,
+				'name'=>null,
+				'age'=>'100'
+			]
+		],$newRow->fetchAll());
+
+	}
+
+	
+	public function insertException(){
+		$query = new Query(self::$mapper);
+
+		try {
+			$query->select('id')
+				->values();
+			$this->fail('error');
+		}catch(Exception $e){
+			$this->assertEquals('type is an not insert');
+		}
+	}
+
+	
+	public function testUpdate(){
+		$query = new Query(self::$mapper);
+
+		$query->update('users')
+			->set(['name'=>'modify'])
+			->set(['age'=>100])
+			->where(['id ='=>1]);
+
+		$statement = $query->execute();
+
+		$this->assertInstanceOf('PDOStatement', $statement);
+
+		$query->clear();
+		$query->select(['name','age'])
+			->from('users')
+			->where(['id='=>1]);
 
 		$result = $query->execute();
 
 		$this->assertEquals([
-			0=>[
-				'id'=>'1',
-				'name'=>'foo'
-			],
-			1=>[
-				'id'=>'2',
-				'name'=>'bar'
-			],
-			2=>[
-				'id'=>'3',
-				'name'=>'hoge'
+			[
+				'name'=>'modify',
+				'age'=>100
+			]
+		],$result->fetchAll());
+		
+
+//case overwrite
+		$query->clear()
+			->update('users')
+			->set(['name'=>'modify'])
+			->set(['age'=>123])
+			->set(['name'=>'hage'], true)
+			->where(['id ='=>1]);
+
+		$statement = $query->execute();
+		
+		$this->assertInstanceOf('PDOStatement', $statement);
+
+		$query->clear();
+		$query->select(['name','age'])
+			->from('users')
+			->where(['id='=>1]);
+
+		$result = $query->execute();
+
+		$this->assertEquals([
+			[
+				'name'=>'hage',
+				'age'=>100
 			]
 		],$result->fetchAll());
 
 	}
-	
-	
-	public function testSelectWhere(){
 
+
+	public function testUpdateException(){
 		$query = new Query(self::$mapper);
 
-		$query->select(['name'])
-			->from(['users'])
-			->where(['id <='=>2])
-			->andWhere(['name ='=>'bar']);
+		try{
+			$query->select('name')
+				->set(['name'=>'modify']);
 
-		$result = $query->execute();
-		
-		$this->assertEquals([
-			0=>[
-				'name'=>'bar'
-			]
-		], $result->fetchAll());
-
+			$this->fail('error');
+		}catch(Exception $e){
+			$this->assertEquals('type is not an update'
+				,$e->getMessage());
+		}
 	}
 
-	public function testJoin(){
+	
+	public function testDelete(){
 		$query = new Query(self::$mapper);
 
-		$query->select(['u.id', 'u.name'])
-			->from(['users as u'])
-			->leftJoin('comments as c', ['c.user_id ='=>1])
-			->rightJoin('profiles as p', ['p.user_id ='=>1])
-			->where(['u.name ='=>'bar']);
+		$query->delete('users')
+			->where(['id ='=>1]);
 
-		$sql = $query->sql();
+		$statement = $query->execute();
 
-//		print_r([$sql, $query->valueBinder()->getBinding()]);
+		$this->assertInstanceOf('PDOStatement', $statement);
+
+		$query->clear();
+		$query->select('id')
+			->from('users');
 
 		$result = $query->execute();
-		print_r($result->fetchAll());
-/*
-		print_r([$sql, $query->valueBinder()->getBinding()]);
-		
-		$result = $query->execute();
-		$result->fetchAll();
-*/
+
+		$this->assertEquals([
+			['id'=>2],
+			['id'=>3]
+		],$result->fetchAll());
 	}
 
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

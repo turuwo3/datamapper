@@ -28,17 +28,17 @@ class QueryCompiler {
 		if($query->hasParts('where')){
 			$sql .= ' ' . $this->buildWhere($query);
 		}
+		if($query->hasParts('order')){
+			$sql .= ' ' . $this->buildOrder($query);
+		}
 		if($query->hasParts('limit')){
 			$sql .= ' ' . $this->buildLimit($query);
 		}
 		if($query->hasParts('offset')){
 			$sql .= ' ' . $this->buildOffset($query);
 		}
-		if($query->hasParts('order')){
-			$sql .= ' ' . $this->buildOrder($query);
-		}
 
-		$query->resetCount();
+		$query->resetBindCount();
 
 		return $sql;
 	}

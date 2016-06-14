@@ -6,28 +6,19 @@ $c = $config['MySql'];
 
 $pdo = new PDO($c['dns'], $c['user'], $c['password']);
 
-$s = $pdo->prepare("SELECT u.id FROM users as u LEFT JOIN comments as c ON c.user_id = 1");
+$s = $pdo->prepare("insert into users (name) values(:c0)");
 
-$s->bindValue(':c0', 1);
+$s->bindValue(':c0', 'new row');
 $s->execute();
 
-//print_r($s->fetchAll());
+//print_r([$s]);
+//print_r([$pdo->lastInsertId()]);
 
-//$s = $pdo->prepare("select * from users where id = :c0");
+$arr = ['name'];
+$fields = ['id'];
 
-//$s->bindValue(':c0', 1);
+$arr = array_merge_recursive($arr,$fields);
 
-//$r = $s->execute();
-
-//print_r($r->fetchAll());
-
-
-$arr['t1'] = ['c'=>[], 'v'=>''];
-$arr['t2'] = ['c'=>['p'=>'dfs', 'v'=>2, 't'=>'f'], 'v'=>''];
-
-foreach($arr as $t => $s){
-print_r($t);
-}
-
+print_r($arr);
 
 

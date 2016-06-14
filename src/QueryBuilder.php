@@ -8,13 +8,15 @@ use TRW\DataMapper\ValueBinder;
 class QueryBuilder {
 	
 	private $parts = [
-		'select' => null,
-		'from' => null,
+		'select' => [],
+		'from' => [],
 		'where' => null,
 		'order' => null,
 		'offset' => null,
 		'limit' => null,
-		'join' => []
+		'join' => [],
+		'set' => [],
+		'insert' => null
 	];
 
 	private $type = 'select';
@@ -46,7 +48,7 @@ class QueryBuilder {
 			return $this->parts;
 		}
 		if(empty($this->parts[$type])){
-			throw new Exception("parts {$type} not found");
+			throw new Exception("parts {$type} is not found");
 		}
 		
 		return $this->parts[$type];
@@ -63,29 +65,75 @@ class QueryBuilder {
 		$this->valueBinder()->bind($param, $value, $type);
 	}
 
+	public function getBinding(){
+		return $this->valueBinder()->getBinding();
+	}
+
 	public function placeHolder($token = null){
 		return $this->valueBinder()->placeHolder($token);
 	}
 
-	public function resetCount(){
+	public function resetBindCount(){
 		$this->valueBinder()->resetCount();
 	}
 
-	public function select($fields){
+	public function refreshBinder(){
+		$this->valueBinder()->refresh();
+	}
+
+	public function clear(){
+		$this->parts = [
+			'select' => [],
+			'from' => [],
+			'where' => null,
+			'order' => null,
+			'offset' => null,
+			'limit' => null,
+			'join' => [],
+			'set' => [],
+			'insert' => null
+		];
+
+		$this->refreshBinder();
+
+		return $this;
+	}
+
+/**
+* 取得カラムを選択する.
+*
+* @param string|array $fields 
+* @param boolean $overwrite;
+* @return Query 
+*/
+	public function select($fields, $overwrite = false){
 		if(!is_array($fields) && is_string($fields)){
 			$fields = [$fields];
 		}
-		$this->parts['select'] = $fields;
+
+		if(!$overwrite){
+			$this->parts['select'] =
+				array_merge_recursive($this->parts['select'], $fields);
+		}else{
+			$this->parts['select'] = $fields;
+		}
+
 		$this->type = 'select';
 
 		return $this;
 	}
 
-	public function from($tables){
+	public function from($tables, $overwrite = false){
 		if(!is_array($tables) && is_string($tables)){
 			$tables = [$tables];
 		}
-		$this->parts['from'] = $tables;
+
+		if(!$overwrite){
+			$this->parts['from'] =
+				array_merge_recursive($this->parts['from'], $tables);
+		}else{
+			$this->parts['from'] = $tables;
+		}
 		$this->type = 'select';
 
 		return $this;
@@ -139,26 +187,39 @@ class QueryBuilder {
 	public function where($conditions, $overwrite = false){
 		if(!$overwrite){
 			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
+		}else{
+			$this->parts['where'] = [];
+			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
 		}
-		$this->parts['where'] = [];
-		$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
 
 		return $this;
 	}
 
 	public function andWhere($conditions){
+		if(empty($this->parts['where'])){
+			throw new Exception('where statement is not defined.
+				 please execute where method previosuly');
+		}
 		$this->parts['where'][] = $this->conjugate($conditions, 'AND');
 		
 		return $this;
 	}
 
 	public function orWhere($conditions){
+		if(empty($this->parts['where'])){
+			throw new Exception('where statement is not defined.
+				 please execute where method previosuly');
+		}
 		$this->parts['where'][] = $this->conjugate($conditions, 'OR');
 		
 		return $this;
 	}
 
 	public function notWhere($conditions){
+		if(empty($this->parts['where'])){
+			throw new Exception('where statement is not defined.
+				 please execute where method previosuly');
+		}
 		$this->parts['where'][] = $this->conjugate($conditions, 'NOT');
 		
 		return $this;
@@ -169,6 +230,9 @@ class QueryBuilder {
 	}
 
 	public function orderDesc($order){
+		if($this->type !== 'select'){
+			throw new Exception('type is as not select');
+		}
 		$this->parts['order'] = $this->makeOrder($order, 'DESC');
 	
 		$this->type = 'select';
@@ -177,10 +241,16 @@ class QueryBuilder {
 	}
 
 	public function orderAsc($order){
+		if($this->type !== 'select'){
+			throw new Exception('type is as not select');
+		}
 		$this->parts['order'] = $this->makeOrder($order, 'ASC');
 	}
 
 	public function offset($offset){
+		if($this->type !== 'select'){
+			throw new Exception('type is as not select');
+		}
 		$this->parts['offset'] = $offset;
 
 		$this->type = 'select';
@@ -189,6 +259,9 @@ class QueryBuilder {
 	}
 
 	public function limit($limit){
+		if($this->type !== 'select'){
+			throw new Exception('type is as not select');
+		}
 		$this->parts['limit'] = $limit;
 
 		$this->type = 'select';
@@ -200,9 +273,21 @@ class QueryBuilder {
 *	'name', 'age'
 * ];
 */
-	public function insert(array $columns){
-		$this->parts['insert']['columns'] = $columns;	
-		
+	public function insert($columns, $overwrite = false){
+		if(is_string($columns)){
+			$columns = [$columns];
+		}
+		if(!$overwrite){
+			if(!empty($this->parts['insert']['columns'])){
+				$this->parts['insert']['columns'] =
+					array_merge_recursive($this->parts['insert']['columns'], $columns);	
+			}else{
+				$this->parts['insert']['columns'] = $columns;
+			}
+		}else{		
+			$this->parts['insert']['columns'] = $columns;
+		}
+
 		$this->type = 'insert';
 		
 		return $this;
@@ -224,11 +309,23 @@ class QueryBuilder {
 *	'foo', 20
 * ];
 */
-	public function values(array $values){
+	public function values($values, $overwrite = false){
 		if($this->type !== 'insert'){
 			throw Exception('type is not an insert');
 		}
-		$this->parts['insert']['values'] = $values;
+		if(is_string($values) || is_int($values)){
+			$values = [$values];
+		}
+		if(!$overwrite){
+			if(!empty($this->parts['insert']['values'])){
+				$this->parts['insert']['values'] =
+					array_merge_recursive($this->parts['insert']['values'], $values);	
+			}else{
+				$this->parts['insert']['values'] = $values;
+			}
+		}else{
+			$this->parts['insert']['values'] = $values;
+		}
 
 		$this->type = 'insert';
 
@@ -250,11 +347,20 @@ class QueryBuilder {
 *	'age' => 10
 * ];
 */
-	public function set(array $values){
+	public function set(array $values, $overwrite = false){
 		if($this->type !== 'update'){
-			throw Exception('type is not an update');
+			throw new Exception('type is not an update');
 		}
-		$this->parts['set'] = $values;
+		if(!$overwrite){
+			if(!empty($this->parts['set'])){
+				$this->parts['set'] =
+					array_merge($this->parts['set'], $values);	
+			}else{
+				$this->parts['set'] = $values;
+			}	
+		}else {
+			$this->parts['set'] = $values;
+		}
 
 		$this->type = 'update';
 

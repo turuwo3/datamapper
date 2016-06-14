@@ -105,11 +105,12 @@ abstract class Driver {
 	protected function prepare($query){
 		$sql = $query->sql();
 		$statement = $this->connect()->prepare($sql);
-		$binding = $query->valueBinder()->getBinding();
+		$binding = $query->getBinding();
 		foreach($binding as $param => $entry){
 			$statement->bindValue(
 				$entry['placeHolder'], $entry['value']);
 		}
+		$query->refreshBinder();
 		return $statement;
 	}
 

@@ -20,6 +20,9 @@ class MySql extends Driver {
 	}
 
 	protected function connect(){
+		if(empty($this->connection)){
+			$this->connection();
+		}
 		return $this->connection;
 	}
 
