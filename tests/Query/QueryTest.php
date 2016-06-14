@@ -52,14 +52,14 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$sql = $query->sql();
 		
 		$this->assertEquals(
-			"SELECT id,name FROM users WHERE id<=:id AND name=:name LIMIT 2 OFFSET 3 ORDER BY id DESC", $sql);
-
+			"SELECT id,name FROM users WHERE id <= :c0 AND name = :c1 LIMIT 2 OFFSET 3 ORDER BY id DESC", $sql);
+/*
 		$this->assertEquals([
 				'integer'=>[':id'=>2],
 				'string'=>[':name'=>'bar'],
 			],
 			$query->getBindValue());
-
+*/
 
 
 		$query = new Query(self::$mapper);
@@ -72,12 +72,14 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$sql = $query->sql();
 		$this->assertEquals(
-			"SELECT name FROM users,profiles WHERE id=:id AND sex=:sex NOT name=:name OR age=:age", $sql);
+			"SELECT name FROM users,profiles WHERE id = :c0 AND sex = :c1 NOT name = :c2 OR age = :c3", $sql);
+/*
 		$this->assertEquals([
 				'integer'=>[':id'=>2, ':age'=>20],
 				'string' =>[':name'=>'bar', ':sex'=>'man']
 			],
 			$query->getBindValue());
+*/
 	}
 
 
@@ -86,17 +88,20 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertSql(){
 		$query = new Query(self::$mapper);
-		$query->insert(['name'=>'foo', 'age'=>20])
-			->into('users');
+		$query->insert(['name', 'age'])
+			->into('users')
+			->values(['foo', 29]);
 
 		$sql = $query->sql();
 		
-		$this->assertEquals("INSERT INTO users (name,age) VALUES (:name,:age)",$sql);
+		$this->assertEquals("INSERT INTO users (name,age) VALUES (:c0,:c1)",$sql);
+/*
 		$this->assertEquals([
 				'string'=>[':name'=>'foo'],
 				'integer'=>[':age'=>20]
 			],
 			$query->getBindValue());
+*/
 	}
 
 
@@ -108,12 +113,15 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$sql = $query->sql();
 		
-		$this->assertEquals("UPDATE users SET name=:name,age=:age WHERE id=:id", $sql);
+		$this->assertEquals("UPDATE users SET name = :c0,age = :c1 WHERE id = :c2", $sql);
+/*
 		$this->assertEquals([
-				'integer'=>[':id'=>2,':age'=>11],
-				'string'=>[':name'=>'bar']
+				':c0'=>[
+					'type'=>'string',
+				],
 			],
-			$query->getBindValue());
+			$query->valueBinder()->getBinding());
+*/
 	}
 
 
@@ -125,12 +133,14 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$sql = $query->sql();
 
-		$this->assertEquals("DELETE FROM users WHERE id=:id OR name=:name",$sql);
+		$this->assertEquals("DELETE FROM users WHERE id = :c0 OR name = :c1",$sql);
+/*
 		$this->assertEquals([
 				'integer'=>[':id'=>1],
 				'string'=>[':name'=>'bar']
 			],
 			$query->getBindValue());
+*/
 	}
 
 /**
@@ -162,10 +172,12 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 				'name'=>'hoge'
 			]
 		],$result->fetchAll());
+
 	}
 	
 	
 	public function testSelectWhere(){
+
 		$query = new Query(self::$mapper);
 
 		$query->select(['name'])
@@ -180,22 +192,24 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 				'name'=>'bar'
 			]
 		], $result->fetchAll());
+
 	}
 
-
-	public function testJoinSql(){
+	public function testJoin(){
 		$query = new Query(self::$mapper);
-		
-		$query->select(['u.*', 'c.*'])
-			->from(['users u', 'comments c'])
-		//	->join(['comments c'])
-			->where(['c.user_id ='=>1]);
-print_r([$query->sql(), $query->getBindValue()]);
 
-		//$result = $query->execute();
-//		print_r($result->fetchAll());
+		$query->select(['u.id', 'u.name'])
+			->from(['users as u'])
+			->rightJoin('comments as c', ['c.user_id ='=>1]);
+
+//		$sql = $query->sql();
+
+//		print_r([$sql, $query->valueBinder()->getBinding()]);
+
+		$result = $query->execute();
+
+		print_r($result->fetchAll());
 	}
-
 
 }
 

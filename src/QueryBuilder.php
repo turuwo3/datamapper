@@ -3,6 +3,7 @@ namespace TRW\DataMapper;
 
 use Exception;
 use TRW\DataMapper\QueryCompiler;
+use TRW\DataMapper\ValueBinder;
 
 class QueryBuilder {
 	
@@ -12,12 +13,13 @@ class QueryBuilder {
 		'where' => null,
 		'order' => null,
 		'offset' => null,
-		'limit' => null
+		'limit' => null,
+		'join' => []
 	];
 
 	private $type = 'select';
 
-	private $bindValue = [];
+	private $valueBinder;
 
 
 	public function sql(){
@@ -28,10 +30,6 @@ class QueryBuilder {
 
 	public function type(){
 		return $this->type;
-	}
-
-	public function getBindValue($type = null){
-		return $this->bindValue;
 	}
 
 	public function hasParts($type){
@@ -50,6 +48,21 @@ class QueryBuilder {
 		}
 		
 		return $this->parts[$type];
+	}
+
+	public function valueBinder(){
+		if($this->valueBinder === null){
+			$this->valueBinder = new ValueBinder();
+		}
+		return $this->valueBinder;
+	}
+
+	public function bind($param, $value, $type){
+		$this->valueBinder()->bind($param, $value, $type);
+	}
+
+	public function placeHolder($token = null){
+		return $this->valueBinder()->placeHolder($token);
 	}
 
 	public function select($fields){
@@ -72,37 +85,44 @@ class QueryBuilder {
 		return $this;
 	}
 
-	private function bind($key, $value, $type){
-		if(empty($this->bindValue[$type][$key])){
-			$this->bindValue[$type][$key] = $value;
-		}
-		$oldSet = $this->bindValue[$type];
-		$newSet = $oldSet + [$key => $value];
+	private function makeJoin($table, $conditions = null, $type = null){
+		$join = compact('table', 'conditions', 'type');
 		
-		$this->bindValue[$type] = $newSet;
+		return $join;
 	}
 
-	private function expr($str){
-		preg_match('/^(.*) (=|<=|>=|>|<)$/', $str, $matches);
-		if(empty($matches[1]) || empty($matches[2])){
-			throw new Exception('expression error');
-		}
-		$expr['key'] = trim($matches[1]);
-		$expr['comparision'] = $matches[2];
-
-		return $expr;
+	public function innerJoin($table, $conditions = null){
+		$this->parts['join'] = 
+			$this->makeJoin($table, $this->conjugate($conditions, 'WHERE'), 'INNER')
+			+ $this->parts['join'];
+		return $this;
 	}
 
+	public function leftJoin($table, $conditions){
+		$this->parts['join'] = 
+			 $this->makeJoin($table, $this->conjugate($conditions, 'ON'), 'LEFT')
+			 + $this->parts['join'];
+
+		return $this;
+	}
+
+	public function rightJoin($table, $conditions){
+		$this->parts['join'] = 
+			$this->makeJoin($table, $this->conjugate($conditions, 'ON'), 'RIGHT')
+			+ $this->parts['join'];
+		return $this;
+	}
+
+/**
+* $conditions = [
+* 	'id =' => 1
+* ];
+*
+*/
 	private function conjugate($conditions, $type){
-		$whereExpr = $this->expr(key($conditions));
-		$whereKey = $whereExpr['key'];
-
-		$whereBindKey = ":{$whereKey}";
-		$whereBindValue = $conditions[key($conditions)];
-		$this->bind($whereBindKey, $whereBindValue, gettype($whereBindValue));
-		
-		$key = str_replace(' ', '', key($conditions));
-		$parts = "{$type} {$key}{$whereBindKey}";
+		$key = key($conditions);
+		$value = $conditions[$key];
+		$parts = compact('type', 'key', 'value');
 
 		return $parts;
 	}
@@ -159,14 +179,13 @@ class QueryBuilder {
 
 		return $this;
 	}
-
-	public function insert($values){
-		
-		foreach($values as $k => $v){
-			$this->bind(":{$k}", $v, gettype($v));
-			$this->parts['insert']['values'][] = ":{$k}";
-			$this->parts['insert']['columns'][] = $k;
-		}	
+/**
+* $columns = [
+*	'name', 'age'
+* ];
+*/
+	public function insert($columns){
+		$this->parts['insert']['columns'] = $columns;	
 		
 		$this->type = 'insert';
 		
@@ -175,6 +194,19 @@ class QueryBuilder {
 
 	public function into($table){
 		$this->parts['insert']['into'] = $table;
+
+		$this->type = 'insert';
+
+		return $this;
+	}
+
+/**
+* $values = [
+*	'foo', 20
+* ];
+*/
+	public function values($values){
+		$this->parts['insert']['values'] = $values;
 
 		$this->type = 'insert';
 
@@ -190,11 +222,14 @@ class QueryBuilder {
 		return $this;
 	}
 
+/**
+* $values = [
+*	'name' => 'bar',
+*	'age' => 10
+* ];
+*/
 	public function set($values){
-		foreach($values as $k => $v){
-			$this->parts['set'][] = "{$k}=:{$k}";
-			$this->bind(":{$k}", $v, gettype($v));
-		}
+		$this->parts['set'] = $values;
 
 		$this->type = 'update';
 

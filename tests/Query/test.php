@@ -1,10 +1,26 @@
 <?php
 
-$arr = ['id ='=>2, 'name'=>'var'];
+$config = require '../config.php';
 
-print_r($arr);
+$c = $config['MySql'];
 
-$where = array_shift($arr);
+$pdo = new PDO($c['dns'], $c['user'], $c['password']);
 
-print_r($where);
-print_r($arr);
+$s = $pdo->prepare("SELECT u.id FROM users as u LEFT JOIN comments as c ON c.user_id = 1");
+
+$s->bindValue(':c0', 1);
+$s->execute();
+
+print_r($s->fetchAll());
+
+
+//$s = $pdo->prepare("select * from users where id = :c0");
+
+//$s->bindValue(':c0', 1);
+
+//$r = $s->execute();
+
+//print_r($r->fetchAll());
+
+
+

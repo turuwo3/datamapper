@@ -49,16 +49,38 @@ class QueryCompiler {
 		return $sql;
 	}
 
-	private function buildJoin($query){
-		$joins = $query->getParts('join');
-		$sql = implode(' ', $joins);
+	private function makeCondition($type, $key, $placeHolder){
+		return "{$type} {$key} {$placeHolder}";
+	}
 
+	private function buildJoin($query){
+		$join = $query->getParts('join');
+		$type = $join['type'];
+		$table = $join['table'];
+
+		$sql = "{$type} JOIN {$table}";
+
+		if(!empty($join['conditions'])){
+			$conditions = $join['conditions'];
+			$conditionType = $conditions['type'];
+			$key = $conditions['key'];
+			$value = $conditions['value'];
+			$placeHolder = $query->placeHolder();
+			$query->bind($placeHolder, $value, gettype($value));
+			$sql .= ' ' . $this->makeCondition($conditionType, $key, $placeHolder);
+		}
 		return $sql;
 	}
 
 	private function buildWhere($query){
-		$sql = implode(' ', $query->getParts('where'));
-
+		$conditions = $query->getParts('where');
+		$result = [];
+		foreach($conditions as $entry){
+			$placeHolder = $query->placeHolder();
+			$query->bind($placeHolder, $entry['value'], gettype($entry['value']));
+			$result[] = "{$entry['type']} {$entry['key']} {$placeHolder}";
+		}
+		$sql = implode(' ', $result);
 		return $sql;
 	}
 
@@ -91,22 +113,32 @@ class QueryCompiler {
 		return $sql;
 	}
 
+	private function buildInto($query){
+		$parts = $query->getParts('insert');
+		$columns = implode(',', $parts['columns']);
+		$into = $parts['into'];
+		$sql = "INTO {$into} ({$columns})";
+
+		return $sql;
+	}
+
 	private function buildInsertValues($query){
 		$parts = $query->getParts('insert');
-		$insert = implode(',', $parts['values']);
+
+		$values = $parts['values'];
+		$placeHolders = [];
+		foreach($values as $value){
+			$placeHolder = $query->placeHolder();
+			$query->bind($placeHolder, $value, gettype($value));
+			$placeHolders[] = $placeHolder;
+		}
+		
+		$insert = implode(',', $placeHolders);
 		$sql = "VALUES ({$insert})";
 
 		return $sql;
 	}
 
-	private function buildInto($query){
-		$parts = $query->getParts('insert');
-		$into = $parts['into'];
-		$columns = implode(',', $parts['columns']);
-		$sql = "INTO {$into} ({$columns})";
-
-		return $sql;
-	}
 
 	private function buildUpdate($query){
 		$update = $query->getParts('update');
@@ -119,7 +151,14 @@ class QueryCompiler {
 
 	private function buildSet($query){
 		$parts = $query->getParts('set');
-		$set = implode(',', $parts);
+		$placeHolders = [];
+		foreach($parts as $key => $value){
+			$placeHolder = $query->placeHolder();
+			$query->bind($placeHolder, $value, gettype($value));
+			$placeHolders[] = "{$key} = {$placeHolder}";
+		}
+
+		$set = implode(',', $placeHolders);
 		$sql = "SET {$set}";
 
 		return $sql;
