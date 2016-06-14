@@ -56,20 +56,21 @@ class QueryCompiler {
 	}
 
 	private function buildJoin($query){
-		$join = $query->getParts('join');
-		$type = $join['type'];
-		$table = $join['table'];
+		$sql = '';
+		foreach($query->getParts('join') as $table => $entry){ 
+			$type = $entry['type'];
+			$sql .= ' ' . "{$type} JOIN {$table}";
 
-		$sql = "{$type} JOIN {$table}";
+			if(!empty($entry['conditions'])){
+				$conditions = $entry['conditions'];
+				$conditionType = $conditions['type'];
+				$key = $conditions['key'];
+				$value = $conditions['value'];
+				$placeHolder = $query->placeHolder();
+				$query->bind($placeHolder, $value, gettype($value));
+				$sql .= ' ' . $this->makeCondition($conditionType, $key, $placeHolder);
+			}
 
-		if(!empty($join['conditions'])){
-			$conditions = $join['conditions'];
-			$conditionType = $conditions['type'];
-			$key = $conditions['key'];
-			$value = $conditions['value'];
-			$placeHolder = $query->placeHolder();
-			$query->bind($placeHolder, $value, gettype($value));
-			$sql .= ' ' . $this->makeCondition($conditionType, $key, $placeHolder);
 		}
 		return $sql;
 	}

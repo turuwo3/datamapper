@@ -91,31 +91,34 @@ class QueryBuilder {
 		return $this;
 	}
 
-	private function makeJoin($table, $conditions = null, $type = null){
-		$join = compact('table', 'conditions', 'type');
+	private function makeJoin($conditions = null, $type = null){
+		$join = compact('conditions', 'type');
 		
 		return $join;
 	}
 
+	public function removeJoin($table){
+		unset($this->parts['join'][$table]);
+
+		return $this;
+	}
+
 	public function innerJoin($table, $conditions = null){
-		$this->parts['join'] = 
-			$this->makeJoin($table, $this->conjugate($conditions, 'WHERE'), 'INNER')
-			+ $this->parts['join'];
+		$this->parts['join'][$table] = 
+			$this->makeJoin($this->conjugate($conditions, 'WHERE'), 'INNER');
 		return $this;
 	}
 
 	public function leftJoin($table, $conditions){
-		$this->parts['join'] = 
-			 $this->makeJoin($table, $this->conjugate($conditions, 'ON'), 'LEFT')
-			 + $this->parts['join'];
+		$this->parts['join'][$table] = 
+			 $this->makeJoin($this->conjugate($conditions, 'ON'), 'LEFT');
 
 		return $this;
 	}
 
 	public function rightJoin($table, $conditions){
-		$this->parts['join'] = 
-			$this->makeJoin($table, $this->conjugate($conditions, 'ON'), 'RIGHT')
-			+ $this->parts['join'];
+		$this->parts['join'][$table] = 
+			$this->makeJoin($this->conjugate($conditions, 'ON'), 'RIGHT');
 		return $this;
 	}
 

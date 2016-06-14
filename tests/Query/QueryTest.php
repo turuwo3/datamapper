@@ -214,21 +214,25 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 		$query->select(['u.id', 'u.name'])
 			->from(['users as u'])
-			->innerJoin('comments as c', ['c.user_id ='=>1])
-			->leftJoin('comments as c', ['c.text ='=>''], true);
+			->leftJoin('comments as c', ['c.user_id ='=>1])
+			->rightJoin('profiles as p', ['p.user_id ='=>1])
+			->where(['u.name ='=>'bar']);
 
 		$sql = $query->sql();
 
-		print_r([$sql, $query->valueBinder()->getBinding()]);
+//		print_r([$sql, $query->valueBinder()->getBinding()]);
 
 		$result = $query->execute();
-		$result->fetchAll();
-
+		print_r($result->fetchAll());
+/*
 		print_r([$sql, $query->valueBinder()->getBinding()]);
 		
 		$result = $query->execute();
 		$result->fetchAll();
+*/
 	}
+
+
 
 }
 

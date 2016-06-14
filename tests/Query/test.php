@@ -11,8 +11,7 @@ $s = $pdo->prepare("SELECT u.id FROM users as u LEFT JOIN comments as c ON c.use
 $s->bindValue(':c0', 1);
 $s->execute();
 
-print_r($s->fetchAll());
-
+//print_r($s->fetchAll());
 
 //$s = $pdo->prepare("select * from users where id = :c0");
 
@@ -21,6 +20,14 @@ print_r($s->fetchAll());
 //$r = $s->execute();
 
 //print_r($r->fetchAll());
+
+
+$arr['t1'] = ['c'=>[], 'v'=>''];
+$arr['t2'] = ['c'=>['p'=>'dfs', 'v'=>2, 't'=>'f'], 'v'=>''];
+
+foreach($arr as $t => $s){
+print_r($t);
+}
 
 
 
