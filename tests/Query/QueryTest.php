@@ -3,32 +3,20 @@ require '../../vendor/autoload.php';
 
 use TRW\DataMapper\Database\Driver\MySql;
 use TRW\DataMapper\MapperInterface;
-use TRW\DataMapper\Query;
-use TRW\DataMapper\QueryCompiler;
+use TRW\DataMapper\Database\Query;
 
-
-class MockMapper implements MapperInterface {
-	private $driver;
-	public function __construct($driver){$this->driver = $driver;}
-	public function getConnection(){return $this->driver;}
-	public function tableName(){}
-	public function className(){}
-	public function schema(){}
-	public function find($conditions = []){} 
-	public function load($obj, $rowData){}
-}
 
 class QueryTest extends PHPUnit_Framework_TestCase {
 
-	protected static $mapper;
+	protected static $driver;
 
 	public static function setUpBeforeClass(){
 		$config = require '../config.php';
-		self::$mapper = new MockMapper(new MySql($config['MySql']));
+		self::$driver = new MySql($config['MySql']);
 	}
 
 	public function setUp(){
-		$d = self::$mapper->getConnection();
+		$d = self::$driver;
 		
 		$d->query("DELETE FROM users");
 		$d->query("DELETE FROM comments");
@@ -41,7 +29,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 
 	public function testSelect(){
-		$query = new Query(self::$mapper);
+		$query = new Query(self::$driver);
 
 		$query->select('u.name')
 			->select('u.id')
@@ -88,7 +76,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 
 	public function testSelectException(){
-		$query = new Query(self::$mapper);
+		$query = new Query(self::$driver);
 		
 		try{
 			$query->select('name')
@@ -106,7 +94,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 
 	public function testInsert(){
-		$query = new Query(self::$mapper);
+		$query = new Query(self::$driver);
 
 		$query->insert('name')
 			->insert(['id','age'])
@@ -165,7 +153,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	
 	public function insertException(){
-		$query = new Query(self::$mapper);
+		$query = new Query(self::$driver);
 
 		try {
 			$query->select('id')
@@ -178,7 +166,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	
 	public function testUpdate(){
-		$query = new Query(self::$mapper);
+		$query = new Query(self::$driver);
 
 		$query->update('users')
 			->set(['name'=>'modify'])
@@ -234,7 +222,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 
 	public function testUpdateException(){
-		$query = new Query(self::$mapper);
+		$query = new Query(self::$driver);
 
 		try{
 			$query->select('name')
@@ -249,7 +237,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	
 	public function testDelete(){
-		$query = new Query(self::$mapper);
+		$query = new Query(self::$driver);
 
 		$query->delete('users')
 			->where(['id ='=>1]);

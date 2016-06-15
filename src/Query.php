@@ -2,21 +2,18 @@
 namespace TRW\DataMapper;
 
 use TRW\DataMapper\QueryBuilder;
-use TRW\DataMapper\MapperInterface;
+use TRW\DataMapper\Driver;
 
 class Query extends QueryBuilder {
-
-	private $mapper;
 	
-	private $driver;
+	private $mapper;
 
 	public function __construct(MapperInterface $mapper){
-		$this->mapper = $mapper;
-		$this->driver = $mapper->getConnection();
+		$this->$mapper = $mapper;
 	}
 
 	public function execute(){
-		$statement = $this->driver->run($this);
+		$statement = $this->mapper->getConnection()->run($this);
 
 		return $statement;
 	}
