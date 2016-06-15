@@ -11,6 +11,7 @@ class QueryBuilder {
 		'select' => [],
 		'from' => [],
 		'where' => null,
+		'in' => null,
 		'order' => null,
 		'offset' => null,
 		'limit' => null,
@@ -86,6 +87,7 @@ class QueryBuilder {
 			'select' => [],
 			'from' => [],
 			'where' => null,
+			'in' => null,
 			'order' => null,
 			'offset' => null,
 			'limit' => null,
@@ -222,6 +224,17 @@ class QueryBuilder {
 		}
 		$this->parts['where'][] = $this->conjugate($conditions, 'NOT');
 		
+		return $this;
+	}
+
+	public function whereIn($values, $overwrite = false){
+		if(!$overwrite){
+			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE IN');
+		}else{
+			$this->parts['where'] = [];
+			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE IN');
+		}
+
 		return $this;
 	}
 
