@@ -4,6 +4,7 @@ namespace TRW\DataMapper;
 use Exception;
 use TRW\DataMapper\QueryCompiler;
 use TRW\DataMapper\ValueBinder;
+use TRW\DataMapper\Expression\QueryExpression;
 
 class QueryBuilder {
 	
@@ -172,69 +173,45 @@ class QueryBuilder {
 		return $this;
 	}
 
-/**
-* $conditions = [
-* 	'id =' => 1
-* ];
-*
-*/
-	private function conjugate($conditions, $type){
-		$key = key($conditions);
-		$value = $conditions[$key];
-		$parts = compact('type', 'key', 'value');
-
-		return $parts;
+	public function newExpr($conjuction = '', $condition = []){
+		return new QueryExpression($conjuction, $condition);
 	}
 
-	public function where($conditions, $overwrite = false){
+	private function conjugate($type, $condition, callable $conjuction = null, $overwrite = false){
 		if(!$overwrite){
-			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
+
+			if(is_callable($conjuction)){
+				$this->parts['where'] = $conjuction($this->newExpr($type, $condition));
+			}else{
+				$this->parts['where'] = $this->newExpr($type,$condition);
+			}
+
 		}else{
-			$this->parts['where'] = [];
-			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE');
+			$this->parts['where'] = $this->newExpr($type, $condition);
 		}
+	}
+
+	public function where($condition, callable $conjuction = null, $overwrite = false){
+		$this->conjugate('', $condition, $conjuction, $overwrite);
 
 		return $this;
 	}
 
-	public function andWhere($conditions){
-		if(empty($this->parts['where'])){
-			throw new Exception('where statement is not defined.
-				 please execute where method previosuly');
-		}
-		$this->parts['where'][] = $this->conjugate($conditions, 'AND');
+	public function andWhere($condition, $overwrite = false){
+		$this->conjugate('AND', $condition, $overwrite);
+			
+		return $this;
+	}
+
+	public function orWhere($condition, $overwrite = false){
+		$this->conjugate('OR', $condition, $overwrite);
 		
 		return $this;
 	}
 
-	public function orWhere($conditions){
-		if(empty($this->parts['where'])){
-			throw new Exception('where statement is not defined.
-				 please execute where method previosuly');
-		}
-		$this->parts['where'][] = $this->conjugate($conditions, 'OR');
+	public function notWhere($condition, $overwrite = false){
+		$this->conjugate('NOT', $condition, $overwrite);
 		
-		return $this;
-	}
-
-	public function notWhere($conditions){
-		if(empty($this->parts['where'])){
-			throw new Exception('where statement is not defined.
-				 please execute where method previosuly');
-		}
-		$this->parts['where'][] = $this->conjugate($conditions, 'NOT');
-		
-		return $this;
-	}
-
-	public function whereIn($values, $overwrite = false){
-		if(!$overwrite){
-			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE IN');
-		}else{
-			$this->parts['where'] = [];
-			$this->parts['where'][] = $this->conjugate($conditions, 'WHERE IN');
-		}
-
 		return $this;
 	}
 

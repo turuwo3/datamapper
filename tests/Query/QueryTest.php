@@ -37,11 +37,13 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 			->where(['name ='=>'foo'])
 			->andWhere(['id ='=>1]);
 
+
 		$result = $query->execute();
 
 		$this->assertEquals(
-			"SELECT u.name,u.id FROM users u WHERE name = :c0 AND id = :c1",
+			"SELECT u.name,u.id FROM users u WHERE (name = :c0 AND id = :c1)",
 			$query->sql());
+
 		$this->assertEquals([
 			[
 				'id' => 1,
@@ -63,7 +65,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$result = $query->execute();
 		
 		$this->assertEquals(
-			"SELECT name FROM users WHERE id = :c0 ORDER BY id DESC LIMIT 1",
+			"SELECT name FROM users WHERE (id = :c0) ORDER BY id DESC LIMIT 1",
 			$query->sql());
 		$this->assertEquals([
 			[
@@ -74,7 +76,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	}
 
-
+/*
 	public function testSelectException(){
 		$query = new Query(self::$driver);
 		
@@ -91,7 +93,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		}
 
 	}
-
+*/
 
 	public function testInsert(){
 		$query = new Query(self::$driver);
@@ -151,7 +153,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	}
 
-	
+/*	
 	public function insertException(){
 		$query = new Query(self::$driver);
 
@@ -163,7 +165,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 			$this->assertEquals('type is an not insert');
 		}
 	}
-
+*/
 	
 	public function testUpdate(){
 		$query = new Query(self::$driver);
@@ -220,7 +222,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 
 	}
 
-
+/*
 	public function testUpdateException(){
 		$query = new Query(self::$driver);
 
@@ -234,7 +236,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 				,$e->getMessage());
 		}
 	}
-
+*/
 	
 	public function testDelete(){
 		$query = new Query(self::$driver);

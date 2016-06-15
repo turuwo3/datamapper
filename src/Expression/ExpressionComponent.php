@@ -5,7 +5,7 @@ interface ExpressionComponent {
 
 	public function getCondition();
 
-	public function getExpressions();
+	public function getExpressions($valueBinder);
 
 	public function addExpression(ExpressionComponent $component);
 

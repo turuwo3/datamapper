@@ -14,11 +14,63 @@ $s->execute();
 //print_r([$s]);
 //print_r([$pdo->lastInsertId()]);
 
-$arr = ['name'];
-$fields = ['id'];
+class Test {
+	public $component = [];
+	public $name = '';
 
-$arr = array_merge_recursive($arr,$fields);
+	public function __construct($name = ''){
+		$this->name = $name;
+	}
 
-print_r($arr);
+	public function add($obj){
+		if(is_callable($obj)){
+			$this->_add($obj( new Test));
+		}
+	}
+
+	public function _add($obj){
+		$this->component[] = $obj;
+	}
+}
+
+
+$test = new Test('one');
+
+
+$test->add(function ($obj){
+//print_r($obj);
+		$obj->name = 'two';
+		return $obj;
+});
+
+
+//print_r($test);
+
+require '../../vendor/autoload.php';
+$query = new TRW\DataMapper\QueryBuilder();
+
+$query->select('*')
+	->from('users')
+	->where(['id ='=>1], function ($exp){
+		$or = $exp->orX(['age ='=>20],function($or){
+			$and = $or->andX(['name ='=>'foo']);
+			$or->add($and);
+			return $or;
+		});
+	    $and2 = $exp->andX(['succes ='=>'true']);
+
+		$and2->add($or);
+		$exp->add($and2);
+		return $exp;
+	});
+
+print_r([$query->sql()]);
+//print_r([$query->sql()]);
+
+
+
+
+
+
 
 

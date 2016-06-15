@@ -76,15 +76,11 @@ class QueryCompiler {
 	}
 
 	private function buildWhere($query){
-		$conditions = $query->getParts('where');
-		$result = [];
-		foreach($conditions as $entry){
-			$placeHolder = $query->placeHolder();
-			$query->bind($placeHolder, $entry['value'], gettype($entry['value']));
-			$result[] = "{$entry['type']} {$entry['key']} {$placeHolder}";
-		}
-		$sql = implode(' ', $result);
-		return $sql;
+		$expr = $query->getParts('where');
+		$valueBinder = $query->valueBinder();
+		$sql = $expr->getExpressions($valueBinder);
+		
+		return 'WHERE' . $sql;
 	}
 
 	private function buildOrder($query){
