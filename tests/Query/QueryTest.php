@@ -41,7 +41,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$result = $query->execute();
 
 		$this->assertEquals(
-			"SELECT u.name,u.id FROM users u WHERE (name = :c0 AND id = :c1)",
+			"SELECT u.name,u.id FROM users u WHERE (name = :c0 AND (id = :c1))",
 			$query->sql());
 
 		$this->assertEquals([
@@ -58,7 +58,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 			->from(['users'])
 			->where(['name ='=>'foo'])
 			->andWhere(['id ='=>1])
-			->where(['id ='=>2], true)
+			->where(['id ='=>2], null,true)
 			->orderDesc('id')
 			->limit(1);
 		

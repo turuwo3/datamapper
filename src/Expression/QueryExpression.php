@@ -31,52 +31,22 @@ class QueryExpression implements ExpressionComponent {
 		return $this->condition;
 	}
 
-	private function bindComponents($valueBinder, &$result){
-		foreach($this->components as $component){
-			$condition  = $component->getCondition();
-			$key = key($condition);
-			$value = $condition[$key];
-			/*
-			if(is_array($value)){
-				 $this->castIn($value, $valueBinder, $result);
-			}else{
-				$placeHolder = $valueBinder->placeHolder();
-				$valueBinder->bind($placeHolder, $value, gettype($value));
-				$result .= " ({$key} {$placeHolder}";
-			}
-*/
-			$conjuction = $component->getConjuction();
 
-			$placeHolder = $valueBinder->placeHolder();
-			$valueBinder->bind($placeHolder, $value, gettype($value));
-			
-			if($conjuction !== '' && $component->isParent){
-				$result .= " {$conjuction} ({$key} {$placeHolder}";
-			}else{
-				$result .= " {$conjuction} {$key} {$placeHolder}";
-			}
-
-			$result .= $component->getExpressions($valueBinder);
-		}
-	}
-
-	public function getExpressions($valueBinder){
+	public function sql($valueBinder){
 		$result = '';
 
 		if($this->conjuction === '' && $this->isParent){
 			$myKey = key($this->condition);
 			$myValue = $this->condition[$myKey];
-/*
+
 			if(is_array($myValue)){
-				 $this->castIn($myValue, $valueBinder, $result);
+				$result .= ' (';
+				$this->castIn($this, $valueBinder, $result);
 			}else{
-*/
 				$placeHolder = $valueBinder->placeHolder();
 				$valueBinder->bind($placeHolder, $myValue, gettype($myValue));
 				$result .= " ({$myKey} {$placeHolder}";
-/*
 			}
-*/
 		}
 
 		$this->bindComponents($valueBinder, $result);
@@ -92,36 +62,60 @@ class QueryExpression implements ExpressionComponent {
 		return $result;
 	}
 
-	private function castIn($condition, $valueBinder, &$result){
+	private function bindComponents($valueBinder, &$result){
+		foreach($this->components as $component){
+			$condition  = $component->getCondition();
+			$key = key($condition);
+			$value = $condition[$key];
+		
+			if(is_array($value)){
+				 $this->castIn($component, $valueBinder, $result);
+			}else{
+				$conjuction = $component->getConjuction();
+				$placeHolder = $valueBinder->placeHolder();
+				$valueBinder->bind($placeHolder, $value, gettype($value));
+				if($conjuction !== '' && $component->isParent){
+					$result .= " {$conjuction} ({$key} {$placeHolder}";
+				}else{
+					$result .= " {$conjuction} {$key} {$placeHolder}";
+				}
+			}
+
+			$result .= $component->sql($valueBinder);
+		}
+	}
+
+	private function castIn(ExpressionComponent $component, $valueBinder, &$result){
+		$condition = $component->condition;
 		$key = key($condition);
-		$values = $condition[$myKey];
-	
+		$values = $condition[$key];
+		$ins = [];
 		foreach($values as $value){
 			$placeHolder = $valueBinder->placeHolder();
-			$valueBinder->bind($placeHolder, $value, gettype($myValue));
-			$result[] = $placeHolder;
+			$valueBinder->bind($placeHolder, $value, gettype($value));
+			$ins[] = $placeHolder;
 		}
-
-		$implode = implode(',', $placeHolder);
+		$implode = implode(',', $ins);
 		$in = "IN ({$implode})";
-		
-		$result .= " ({$myKey} {$in}";
+		$conjuction = $component->conjuction;
+
+		if($conjuction !== '' && $component->isParent){
+			$result .= " {$conjuction} ({$key} {$in}";
+		}else{
+			$result .= " {$conjuction} {$key} {$in}";
+		}
 	}
 
 	private $counter = 0;
 
-	public function addExpression(ExpressionComponent $component){
+	public function add(ExpressionComponent $component){
 		$counter = $this->counter++;
-		$this->components[$component->getConjuction() . '_' .$counter] = $component;
+		$this->components[$counter] = $component;
 	}
 	
-	public function removeExpression($name){
-		unset($this->components[$name]);
+	public function remove($index){
+		unset($this->components[$index]);
 		$this->counter--;
-	}
-
-	public function add($component){
-		$this->addExpression($component);
 	}
 
 	public function isParent($bool){

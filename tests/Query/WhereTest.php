@@ -29,7 +29,7 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 
 	public function testWhere(){
 		$query = new Query(self::$driver);
-
+/*
 		$query->select('name')
 			->from('users')
 			->where(['id ='=>1])
@@ -37,19 +37,27 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 			->notWhere(['age ='=>20]);
 
 		print_r([$query->sql()]);
-
+*/
 	}
 	
 	public function testWhere2(){
 		$query = new Query(self::$driver);
-
+/*
 		$query->select('name')
 			->from('users')
-			->where(function ($exp){
-				$new = $exp->orX(['id ='=>100])
-					->andX(['age '=>20]);
-				return $new;
+			->where(['id ='=>1], function ($exp){
+				$new = $exp->orX(['name ='=>'100']);
+				$exp->add($new);
+				return $exp;
 			});
+*/
+$query->select('*')
+	->from('users')
+	->where(['id ='=>1], function ($exp){
+		$or = $exp->orX(['age ='=>20]);
+		$exp->add($or);
+		return $exp;
+	});
 
 		print_r([$query->sql()]);
 

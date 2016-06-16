@@ -51,18 +51,7 @@ $query = new TRW\DataMapper\QueryBuilder();
 
 $query->select('*')
 	->from('users')
-	->where(['id ='=>1], function ($exp){
-		$or = $exp->orX(['age ='=>20],function($or){
-			$and = $or->andX(['name ='=>'foo']);
-			$or->add($and);
-			return $or;
-		});
-	    $and2 = $exp->andX(['succes ='=>'true']);
-
-		$and2->add($or);
-		$exp->add($and2);
-		return $exp;
-	});
+	->where(['id'=>[1,2]]);
 
 print_r([$query->sql()]);
 //print_r([$query->sql()]);

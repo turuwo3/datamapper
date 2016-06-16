@@ -5,11 +5,11 @@ interface ExpressionComponent {
 
 	public function getCondition();
 
-	public function getExpressions($valueBinder);
+	public function sql($valueBinder);
 
-	public function addExpression(ExpressionComponent $component);
+	public function add(ExpressionComponent $component);
 
-	public function removeExpression($name);
+	public function remove($index);
 
 	public function getConjuction();
 

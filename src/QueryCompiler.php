@@ -78,7 +78,7 @@ class QueryCompiler {
 	private function buildWhere($query){
 		$expr = $query->getParts('where');
 		$valueBinder = $query->valueBinder();
-		$sql = $expr->getExpressions($valueBinder);
+		$sql = $expr->sql($valueBinder);
 		
 		return 'WHERE' . $sql;
 	}

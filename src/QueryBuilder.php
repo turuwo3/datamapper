@@ -179,13 +179,21 @@ class QueryBuilder {
 
 	private function conjugate($type, $condition, callable $conjuction = null, $overwrite = false){
 		if(!$overwrite){
-
-			if(is_callable($conjuction)){
-				$this->parts['where'] = $conjuction($this->newExpr($type, $condition));
+			
+			if(empty($this->parts['where'])){
+				if(is_callable($conjuction)){
+					$this->parts['where'] = $conjuction($this->newExpr($type, $condition));
+				}else{
+					$this->parts['where'] = $this->newExpr($type,$condition);
+				}
 			}else{
-				$this->parts['where'] = $this->newExpr($type,$condition);
+				if(is_callable($conjuction)){
+					$this->parts['where']->add($conjuction($this->newExpr($type, $condition)));
+				}else{
+					$this->parts['where']->add($this->newExpr($type,$condition));
+				}
 			}
-
+			
 		}else{
 			$this->parts['where'] = $this->newExpr($type, $condition);
 		}
@@ -197,20 +205,20 @@ class QueryBuilder {
 		return $this;
 	}
 
-	public function andWhere($condition, $overwrite = false){
-		$this->conjugate('AND', $condition, $overwrite);
+	public function andWhere($condition, callable $conjuction = null, $overwrite = false){
+		$this->conjugate('AND', $condition, $conjuction, $overwrite);
 			
 		return $this;
 	}
 
-	public function orWhere($condition, $overwrite = false){
-		$this->conjugate('OR', $condition, $overwrite);
+	public function orWhere($condition, callable $conjuction = null,$overwrite = false){
+		$this->conjugate('OR', $condition, $conjuction, $overwrite);
 		
 		return $this;
 	}
 
-	public function notWhere($condition, $overwrite = false){
-		$this->conjugate('NOT', $condition, $overwrite);
+	public function notWhere($condition, callable $conuction = null, $overwrite = false){
+		$this->conjugate('NOT', $condition, $conjuction,$overwrite);
 		
 		return $this;
 	}
