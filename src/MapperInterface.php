@@ -16,12 +16,27 @@ interface MapperInterface {
 /**
 * @return string
 */
+	public function alias();
+
+/**
+* @return string
+*/
+	public function aliasField($field);
+
+/**
+* @return string
+*/
 	public function className();
 
 /**
 * @return TRW\DataMapper\Schema
 */
 	public function schema();
+
+/**
+* @return array;
+*/
+	public function columns();
 
 /**
 * @return TRW\DataMapper\Query

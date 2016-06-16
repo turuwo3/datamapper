@@ -18,7 +18,7 @@ class Query extends QueryBuilder {
 
 	public function execute(){
 		$statement = $this->driver->run($this);
-
+		
 		return $statement;
 	}
 

@@ -42,7 +42,7 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 	
 	public function testWhere2(){
 		$query = new Query(self::$driver);
-/*
+
 		$query->select('name')
 			->from('users')
 			->where(['id ='=>1], function ($exp){
@@ -50,16 +50,6 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 				$exp->add($new);
 				return $exp;
 			});
-*/
-$query->select('*')
-	->from('users')
-	->where(['id ='=>1], function ($exp){
-		$or = $exp->orX(['age ='=>20]);
-		$exp->add($or);
-		return $exp;
-	});
-
-		print_r([$query->sql()]);
 
 	}
 		
