@@ -28,6 +28,18 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testJoin(){
+		$query = new Query(self::$driver);
+
+		$query->select('*')
+			->from('users as u')
+			->innerJoin('comments as c', ['u.id ='=>1]);
+			//->where(['name ='=>'foo']);
+
+		print_R([$query->sql()]);
+	}
+
+
 	public function testSelect(){
 		$query = new Query(self::$driver);
 
@@ -260,7 +272,7 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		],$result->fetchAll());
 	}
 
-
+	
 
 }
 

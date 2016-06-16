@@ -156,20 +156,20 @@ class QueryBuilder {
 
 	public function innerJoin($table, $conditions = null){
 		$this->parts['join'][$table] = 
-			$this->makeJoin($this->conjugate($conditions, 'WHERE'), 'INNER');
+			$this->makeJoin($this->newExpr('WHERE', $conditions), 'INNER');
 		return $this;
 	}
 
 	public function leftJoin($table, $conditions){
 		$this->parts['join'][$table] = 
-			 $this->makeJoin($this->conjugate($conditions, 'ON'), 'LEFT');
+			 $this->makeJoin($this->newExpr('ON', $conditions), 'LEFT');
 
 		return $this;
 	}
 
 	public function rightJoin($table, $conditions){
 		$this->parts['join'][$table] = 
-			$this->makeJoin($this->conjugate($conditions, 'ON'), 'RIGHT');
+			$this->makeJoin($this->newExpr('ON', $conditions), 'RIGHT');
 		return $this;
 	}
 

@@ -59,16 +59,12 @@ class QueryCompiler {
 		$sql = '';
 		foreach($query->getParts('join') as $table => $entry){ 
 			$type = $entry['type'];
-			$sql .= ' ' . "{$type} JOIN {$table}";
+			$sql .= "{$type} JOIN {$table}";
 
 			if(!empty($entry['conditions'])){
-				$conditions = $entry['conditions'];
-				$conditionType = $conditions['type'];
-				$key = $conditions['key'];
-				$value = $conditions['value'];
-				$placeHolder = $query->placeHolder();
-				$query->bind($placeHolder, $value, gettype($value));
-				$sql .= ' ' . $this->makeCondition($conditionType, $key, $placeHolder);
+				$expr = $entry['conditions'];
+				$valueBinder = $query->valueBinder();
+				$sql .= $expr->sql($valueBinder);
 			}
 
 		}
@@ -80,7 +76,7 @@ class QueryCompiler {
 		$valueBinder = $query->valueBinder();
 		$sql = $expr->sql($valueBinder);
 		
-		return 'WHERE' . $sql;
+		return 'WHERE '.$sql;
 	}
 
 	private function buildOrder($query){

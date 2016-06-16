@@ -50,12 +50,17 @@ require '../../vendor/autoload.php';
 $query = new TRW\DataMapper\QueryBuilder();
 
 $query->select('*')
-	->from('users')
-	->where(['id'=>[1,2]]);
+	->from('users as u')
+	->leftJoin('comments as c',['id'=>[1,2]]);
 
 print_r([$query->sql()]);
-//print_r([$query->sql()]);
 
+
+$query->select('*')
+	->from('users as u')
+	->rightJoin('comments as c',['id'=>[1,2]]);
+
+print_r([$query->sql()]);
 
 
 

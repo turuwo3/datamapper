@@ -31,31 +31,44 @@ class QueryExpression implements ExpressionComponent {
 		return $this->condition;
 	}
 
+	private function isRoot($component){
+		$conjuction = $component->conjuction;
+		if($conjuction === '' || $conjuction === 'ON'
+				|| $conjuction === 'WHERE'){
+			return true;
+		}
+		return false;
+	}
 
 	public function sql($valueBinder){
 		$result = '';
 
-		if($this->conjuction === '' && $this->isParent){
+		if($this->isRoot($this) && $this->isParent){
 			$myKey = key($this->condition);
 			$myValue = $this->condition[$myKey];
+			$myConjuction = $this->conjuction;
 
 			if(is_array($myValue)){
-				$result .= ' (';
 				$this->castIn($this, $valueBinder, $result);
 			}else{
 				$placeHolder = $valueBinder->placeHolder();
 				$valueBinder->bind($placeHolder, $myValue, gettype($myValue));
-				$result .= " ({$myKey} {$placeHolder}";
+			
+				if($myConjuction === ''){
+					$result .= "({$myKey} {$placeHolder}";
+				}else{
+					$result .= " {$myConjuction} ({$myKey} {$placeHolder}";
+				}
 			}
 		}
 
 		$this->bindComponents($valueBinder, $result);
 		
-		if($this->conjuction !== '' && $this->isParent){
+		if(!$this->isRoot($this) && $this->isParent){
 			$result .= ')';
 		}
 
-		if($this->conjuction === '' && $this->isParent){
+		if($this->isRoot($this) && $this->isParent){
 			$result .= ')';
 		}
 
@@ -74,7 +87,7 @@ class QueryExpression implements ExpressionComponent {
 				$conjuction = $component->getConjuction();
 				$placeHolder = $valueBinder->placeHolder();
 				$valueBinder->bind($placeHolder, $value, gettype($value));
-				if($conjuction !== '' && $component->isParent){
+				if(!$this->isRoot($component) && $component->isParent){
 					$result .= " {$conjuction} ({$key} {$placeHolder}";
 				}else{
 					$result .= " {$conjuction} {$key} {$placeHolder}";
