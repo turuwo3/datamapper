@@ -25,6 +25,24 @@ class QueryBuilder {
 
 	private $valueBinder;
 
+	public function clear(){
+		$this->parts = [
+			'select' => [],
+			'from' => [],
+			'where' => null,
+			'in' => null,
+			'order' => null,
+			'offset' => null,
+			'limit' => null,
+			'join' => [],
+			'set' => [],
+			'insert' => null
+		];
+
+		$this->refreshBinder();
+
+		return $this;
+	}
 
 	public function sql(){
 		$compiler = new QueryCompiler($this);
@@ -83,24 +101,6 @@ class QueryBuilder {
 		$this->valueBinder()->refresh();
 	}
 
-	public function clear(){
-		$this->parts = [
-			'select' => [],
-			'from' => [],
-			'where' => null,
-			'in' => null,
-			'order' => null,
-			'offset' => null,
-			'limit' => null,
-			'join' => [],
-			'set' => [],
-			'insert' => null
-		];
-
-		$this->refreshBinder();
-
-		return $this;
-	}
 
 /**
 * 取得カラムを選択する.
@@ -142,7 +142,10 @@ class QueryBuilder {
 		return $this;
 	}
 
-	private function makeJoin($conditions = null, $type = null){
+	private function makeJoin($conjuction = null, $conditions = null, $type = null){
+		if($conditions !== null){
+			$conditions = $this->newExpr($conjuction, $conditions);
+		}
 		$join = compact('conditions', 'type');
 		
 		return $join;
@@ -155,21 +158,19 @@ class QueryBuilder {
 	}
 
 	public function innerJoin($table, $conditions = null){
-		$this->parts['join'][$table] = 
-			$this->makeJoin($this->newExpr('WHERE', $conditions), 'INNER');
+		$this->parts['join'][$table] = $this->makeJoin('WHERE', $conditions, 'INNER');
+		
 		return $this;
 	}
 
-	public function leftJoin($table, $conditions){
-		$this->parts['join'][$table] = 
-			 $this->makeJoin($this->newExpr('ON', $conditions), 'LEFT');
-
+	public function leftJoin($table, $conditions = null){
+		$this->parts['join'][$table] = $this->makeJoin('ON', $conditions, 'LEFT');
+		
 		return $this;
 	}
 
-	public function rightJoin($table, $conditions){
-		$this->parts['join'][$table] = 
-			$this->makeJoin($this->newExpr('ON', $conditions), 'RIGHT');
+	public function rightJoin($table, $conditions = null){
+		$this->parts['join'][$table] = $this->makeJoin('ON', $conditions, 'RIGHT');
 		return $this;
 	}
 

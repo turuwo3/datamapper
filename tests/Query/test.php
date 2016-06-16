@@ -63,8 +63,16 @@ $query->select('*')
 print_r([$query->sql()]);
 
 
+		$query->clear()
+			->select('u.name')
+			->from('users as u')
+			->leftJoin('comments as c')
+			->where(['u.id ='=>2], function ($exp){
+				$and = $exp->andX(['name ='=>'bar']);
+				$exp->add($and);
+				return $exp;		
+			});
 
 
-
-
+print_r([$query->sql()]);
 

@@ -28,15 +28,73 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testJoin(){
+	public function testInnerJoin(){
 		$query = new Query(self::$driver);
 
-		$query->select('*')
+		$query->select('u.name')
 			->from('users as u')
 			->innerJoin('comments as c', ['u.id ='=>1]);
-			//->where(['name ='=>'foo']);
+			
+		$this->assertEquals(
+			"SELECT u.name FROM users as u INNER JOIN comments as c WHERE (u.id = :c0)",
+		 	$query->sql());
+		$result = $query->execute();
+		$this->assertEquals([
+			'name'=>'foo'	
+		],$result->fetch());
 
-		print_R([$query->sql()]);
+
+		$query->clear()
+			->select('u.name')
+			->from('users as u')
+			->innerJoin('comments as c')
+			->where(['u.id ='=>2], function ($exp){
+				$and = $exp->andX(['name ='=>'bar']);
+				$exp->add($and);
+				return $exp;		
+			});
+			
+		$this->assertEquals(
+			"SELECT u.name FROM users as u INNER JOIN comments as c WHERE (u.id = :c0 AND name = :c1)",
+		 	$query->sql());
+		$result = $query->execute();
+		$this->assertEquals([
+			'name'=>'bar'	
+		],$result->fetch());
+
+	}
+
+	public function testLeftJoin(){
+		$query = new Query(self::$driver);
+
+		$query->select('c.text')
+			->from('users as u')
+			->leftJoin('comments as c', ['c.user_id ='=>1])
+			->limit(1);
+
+		$this->assertEquals(
+			"SELECT c.text FROM users as u LEFT JOIN comments as c ON (c.user_id = :c0) LIMIT 1",
+			$query->sql());
+		$result = $query->execute();
+		$this->assertEquals([
+			'text'=>'foo comment',
+		],$result->fetch());
+		
+		
+		$query->clear()
+			->select('c.text')
+			->from('users as u')
+			->leftJoin('comments as c', ['c.user_id ='=>1])
+			->where(['u.id ='=>1])
+			->limit(1);
+
+		$this->assertEquals(
+"SELECT c.text FROM users as u LEFT JOIN comments as c ON (c.user_id = :c0) WHERE (u.id = :c1) LIMIT 1",
+			$query->sql());
+		$result = $query->execute();
+		$this->assertEquals([
+			'text'=>'foo comment',
+		],$result->fetch());
 	}
 
 
