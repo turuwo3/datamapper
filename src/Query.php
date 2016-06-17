@@ -1,10 +1,12 @@
 <?php
 namespace TRW\DataMapper;
 
+use IteratorAggregate;
 use TRW\DataMapper\Database\Query as DBQuery;
 use TRW\DataMapper\Driver;
+use TRW\DataMapper\ResultSet;
 
-class Query extends DBQuery{
+class Query extends DBQuery implements IteratorAggregate{
 	
 	private $mapper;
 	
@@ -19,16 +21,22 @@ class Query extends DBQuery{
 	private $resultSet;	
 
 	public function __construct(MapperInterface $mapper){
-		$this->mapper = $mapper;
+		$this->mapper = $this->mapper($mapper);
 		$this->table($mapper);
 		$this->aliasTable($mapper);
 		$this->fields($mapper);
 		$this->aliasFields($mapper);
 		
-		$driver = $mapper->getConnection();
+		$driver = $mapper->connection();
 		parent::__construct($driver);
 	}
 
+	public function mapper($mapper = null){
+		if($mapper !== null){
+			$this->mapper = $mapper;
+		}
+		return $this->mapper;
+	}
 
 	public function table($mapper = null){
 		if($mapper !== null){
@@ -46,18 +54,30 @@ class Query extends DBQuery{
 
 	public function fields($mapper = null){
 		if($mapper !== null){
-			$this->fields = $mapper->columns();
+			$this->fields = $mapper->fields();
 		}
+		return $this->fields;
 	}
 
 	public function aliasFields($mapper = null){
 		if($mapper !== null){
-			$fields = $mapper->columns();
+			$fields = $mapper->fields();
 			foreach($fields as $field){
 				$this->aliasFields[] = $mapper->aliasField($field);
 			}
 		}
 		return $this->aliasFields;
+	}
+
+	public function getIterator(){
+		if(empty($this->resultSet)){
+			$statement = $this->execute();
+			if($statement === false){
+				throw new Exception('Sql error');
+			}
+			$this->resultSet = new ResultSet($this, $statement);
+		}
+		return $this->resultSet;
 	}
 
 	public function conversion($condition){
@@ -69,9 +89,9 @@ class Query extends DBQuery{
 		return $conversion;
 	}
 
-	public function select(){
-		parent::select(implode(',', $this->aliasFields()))
-			->from($this->table() . ' AS ' . $this->aliasTable());
+	public function selectMyTable(){
+		parent::select(implode(',', $this->fields()))
+			->from($this->table());
 	
 		return $this;
 	}
@@ -79,11 +99,10 @@ class Query extends DBQuery{
 /**
 * @override
 */
-	public function find($condition, callable $conjuction = null, $overwrite = false){
-		$this->select();
-		$condition = $this->conversion($condition);
+	public function find(){
+		$this->selectMyTable();
 
-		return parent::where($condition, $conjuction, $overwrite);
+		return $this;
 	}
 
 

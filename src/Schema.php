@@ -78,7 +78,7 @@ class Schema {
 
 	public function __construct($mapper){
 		$this->mapper = $mapper;
-		$this->driver = $mapper->getConnection();
+		$this->driver = $mapper->connection();
 		$this->table = $mapper->tableName();
 	}
 

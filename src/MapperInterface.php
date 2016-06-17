@@ -6,17 +6,37 @@ interface MapperInterface {
 /**
 * @return TRW\DataMapper\Driver
 */
-	public function getConnection();
+	public function connection($driver = null);
+
+/**
+* @return TRW\DataMapper\IdentityMap
+*/
+	public function identityMap($map = null);
+
+/**
+* @return TRW\DataMapper\Entity
+*/
+	public function getCache($id);
+
+/**
+* @return void
+*/
+	public function setCache($id, $record);
+
+/**
+* @return boolean
+*/
+	public function hasCache($id);
 
 /**
 * @return string
 */
-	public function tableName();
+	public function tableName($tableName = null);
 
 /**
 * @return string
 */
-	public function alias();
+	public function alias($alias = null);
 
 /**
 * @return string
@@ -31,22 +51,22 @@ interface MapperInterface {
 /**
 * @return TRW\DataMapper\Schema
 */
-	public function schema();
+	public function schema($schema = null);
 
 /**
 * @return array;
 */
-	public function columns();
+	public function fields();
 
 /**
 * @return TRW\DataMapper\Query
 */
-	public function find($conditions = []);
+	public function find();
 
 /**
 * @return void
 */
-	public function load($obj, $rowData);
+	public function load($rowData);
 
 
 }

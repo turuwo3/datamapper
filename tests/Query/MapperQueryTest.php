@@ -4,25 +4,49 @@ require '../../vendor/autoload.php';
 use TRW\DataMapper\Database\Driver\MySql;
 use TRW\DataMapper\MapperInterface;
 use TRW\DataMapper\Query;
+use TRW\DataMapper\IdentityMap;
+use TRW\DataMapper\Entity;
 
 class MockMapper implements MapperInterface {
 	public $driver;
+	public $identityMap;
 	public function __construct($driver){
 		$this->driver = $driver;
+		$this->identityMap = new IdentityMap();
+	}
+
+	public function connection($driver = null){
+		return $this->driver;
+	}
+
+	public function primaryKey($key = null){
+		return 'id';
+	}
+	public function identityMap($map = null){
+		return $this->identityMap;
+	}
+	public function getCache($id){
+		return $this->identityMap->get($id);
+	}
+	public function setCache($id, $record){
+		$this->identityMap->set($id, $record);
+	}
+	public function hasCache($id){
+		return $this->identityMap->has($id);
 	}
 	public function className(){
 		return 'App\Model\Mapper\UsersMapper';
 	}
-	public function tableName()	{
+	public function tableName($tableName = null){
 		return 'users';
 	}
-	public function columns(){
+	public function fields(){
 		return ['id', 'name', 'age'];
 	}
-	public function schema(){
+	public function schema($schema = null){
 		return [];
 	}
-	public function alias(){
+	public function alias($alias = null){
 		return 'u';
 	}
 	public function aliasField($field){
@@ -31,14 +55,24 @@ class MockMapper implements MapperInterface {
 	public function getConnection(){
 		return $this->driver;
 	}
-	public function find($conditons = []){
+	public function find(){
 		return false;
 	}
-	public function load($obj, $rowData){
-		return false;
+	public function load($rowData){
+		return $this->createEntity($rowData);
+	}
+	public function createEntity($data){
+		return new User($data);
 	}
 }
 
+class User extends Entity {
+	public $data;
+
+	public function __construct($data = []){
+		$this->data = $data;
+	}
+}
 
 class MapperQueryTest extends PHPUnit_Framework_TestCase {
 
@@ -66,9 +100,10 @@ class MapperQueryTest extends PHPUnit_Framework_TestCase {
 
 	public function testWhere(){
 		$query = new Query(self::$mapper);
-		$query->find(['id ='=>1]);
+		$query->find()
+			->where(['id ='=>1]);
 		$this->assertEquals(
-			"SELECT u.id,u.name,u.age FROM users AS u WHERE (u.id = :c0)"
+			"SELECT id,name,age FROM users WHERE (id = :c0)"
 			,$query->sql());
 		
 		$result = $query->execute();
@@ -80,6 +115,17 @@ class MapperQueryTest extends PHPUnit_Framework_TestCase {
 				'age'=>10
 			]
 		],$result->fetchAll());
+	}
+
+	public function testIterator(){
+		$query = new Query(self::$mapper);
+		$query->find();
+//print_r($query);	
+		foreach($query as $row){
+			print_r([$row]);
+		}
+		
+
 	}
 
 
