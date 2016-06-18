@@ -5,6 +5,7 @@ use IteratorAggregate;
 use TRW\DataMapper\Database\Query as DBQuery;
 use TRW\DataMapper\Driver;
 use TRW\DataMapper\ResultSet;
+use Exception;
 
 class Query extends DBQuery implements IteratorAggregate{
 	
@@ -69,15 +70,22 @@ class Query extends DBQuery implements IteratorAggregate{
 		return $this->aliasFields;
 	}
 
-	public function getIterator(){
-		if(empty($this->resultSet)){
-			$statement = $this->execute();
-			if($statement === false){
-				throw new Exception('Sql error');
-			}
-			$this->resultSet = new ResultSet($this, $statement);
+	public function resultSet(){
+		$statement = $this->execute();
+		
+		if($statement === false){
+			throw new Exception("this {$this->table()} statement is false");
 		}
-		return $this->resultSet;
+		
+		$buffere = $this->mapper()->loadAssociations($statement);
+		$resultSet = new ResultSet($this, $buffere);
+		
+		return $resultSet;
+	}
+
+	public function getIterator(){
+		//print_r(['Query->resultSet()',$this->mapper()->associations()['Comments']->resultMap()]);
+		return $this->resultSet();
 	}
 
 	public function conversion($condition){

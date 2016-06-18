@@ -4,6 +4,8 @@ namespace TRW\DataMapper;
 use TRW\DataMapper\Util\Inflector;
 use TRW\DataMapper\MapperInterface;
 use TRW\DataMapper\IdentityMap;
+use TRW\DataMapper\Association\HasMany;
+use TRW\DataMapper\Database\BufferedStatement;
 
 class BaseMapper implements MapperInterface{
 
@@ -25,7 +27,7 @@ class BaseMapper implements MapperInterface{
 
 	private $primaryKey = 'id';
 
-
+	private $associations = [];
 
 	public function __construct($driver){
 		$this->driver = $driver;
@@ -118,11 +120,45 @@ class BaseMapper implements MapperInterface{
 	public function fields(){
 		return array_keys($this->schema()->columns());
 	}
+	
+	public function associations(){
+		return $this->associations;
+	}
+
+	public function addAssociation($targetClass, $assoc){
+		$this->associations[$targetClass] = $assoc;
+	}
+
+	public function hasMany($target, $condition = []){
+		$this->addAssociation($target ,new HasMany($this, $target, $condition));
+	}
+
+	public function loadAssociations($statement){
+		if(!$statement instanceof BufferedStatement){
+			$statement = new BufferedStatement($statement);
+		}
+		foreach($this->associations() as $table => $assoc){
+			$assoc->loadAssociation($statement);
+		}
+		return $statement;
+	}
+
+	public function attachAssociation($entity){
+		//print_r($this->associations()['Comments']->resultMap());
+		foreach($this->associations() as $table => $assoc){
+			$name = $assoc->targetEntityName();
+			$map = $assoc->resultMap();
+			if(!empty($map[$entity->id])){
+		//		print_r($map[$entity->id]);
+				$entity->{$name} =  $map[$entity->id];
+			}
+		}
+	}
+	
 
 	public function query(){
 		return new Query($this);
 	}
-
 
 	public function find(){
 		$query = $this->query();
@@ -146,19 +182,26 @@ class BaseMapper implements MapperInterface{
 		}
 	}
 
-	protected function createEntity($data = []){
+	public function entityClass($name = null){
+		if($name !== null){
+			$this->entityClass = $name;
+		}
 		if(empty($this->entityClass)){
 			list($namespace, $class) =
 				Inflector::namespaceSplit($this->className());
 			$entity = 
-				$namespace . '\\' . ucfirst(Inflector::singular($this->tableName));
+				 '\\App\\Model\\Entity\\' . ucfirst(Inflector::singular($this->tableName));
 
 			if(!class_exists($entity)) {
 				$entity = 'TRW\DataMapper\Entity';
 			}
 			$this->entityClass = $entity;
 		}
-		$name = $this->entityClass;
+		return $this->entityClass;
+	}
+
+	protected function createEntity($data = []){
+		$name = $this->entityClass();
 		return new $name($data);
 	}
 

@@ -54,6 +54,14 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 	}
 		
 
+	public function testWhereIn(){
+		$query = new Query(self::$driver);
+
+		$query->select('name')
+			->from('users')
+			->where(['id '=>[1,2,3]]);
+print_r([$query->sql()]);
+	}
 
 
 
