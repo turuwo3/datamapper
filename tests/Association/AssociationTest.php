@@ -40,9 +40,9 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$d->query("DELETE FROM users");
 		$d->query("INSERT INTO users (id, name) VALUES
 			(1, 'foo'), (2, 'bar'), (3, 'hoge')");
-		$d->query("DLETE FROM commnets");
+		$d->query("DELETE FROM comments");
 		$d->query("INSERT INTO comments (id, text, user_id) VALUES
-			(1, 'foo comment', 1), (2, 'foo commnet', 1), (3, 'bar comment', 2)");
+			(1, 'foo comment 1', 1), (2, 'foo commnet 2', 1), (3, 'bar comment', 2)");
 	}
 
 
@@ -50,7 +50,8 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$users = new UsersMapper(self::$driver);
 		$users->hasMany('Comments');
 	
-		$result = $users->find();
+		$result = $users->find()
+			->with('Comments');
 		foreach($result as $user){
 			print_r($user);
 		}

@@ -5,6 +5,7 @@ use IteratorAggregate;
 use TRW\DataMapper\Database\Query as DBQuery;
 use TRW\DataMapper\Driver;
 use TRW\DataMapper\ResultSet;
+use TRW\DataMapper\Database\BufferedStatement;
 use Exception;
 
 class Query extends DBQuery implements IteratorAggregate{
@@ -70,21 +71,62 @@ class Query extends DBQuery implements IteratorAggregate{
 		return $this->aliasFields;
 	}
 
-	public function resultSet(){
-		$statement = $this->execute();
-		
-		if($statement === false){
-			throw new Exception("this {$this->table()} statement is false");
+	private $with = [];
+
+	public function with($mapper){
+		if(is_string($mapper)){
+			$mapper = [$mapper];
 		}
-		
-		$buffere = $this->mapper()->loadAssociations($statement);
-		$resultSet = new ResultSet($this, $buffere);
+
+		$this->with[] = $mapper;
+	
+		return $this;
+	}
+
+	public function hasParts($name){
+		if($name === 'with'){
+			if(empty($this->with)){
+				return false;
+			}
+			return true;
+		}
+		return parent::hasParts($name);
+	}
+
+	public function getParts($name){
+		if($name === 'with'){
+			if(empty($this->with)){
+				throw new Exception('parts with not found');
+			}
+			return $this->with;
+		}
+		return parent::getParts($name);
+	}
+
+	private $eagerLoader;
+
+	public function eagerLoader(){
+		if($this->eagerLoader === null){
+			$this->eagerLoader = new EagerLoader($this);
+		}
+		return $this->eagerLoader;
+	}
+
+	public function isContain($table){
+		return $this->eagerLoader()->isContain($table);
+	}
+
+	public function resultSet(){
+		$statement = new BufferedStatement($this->execute());
+
+		$statement = $this->eagerLoader()->eagerLoad($statement);
+
+		$resultSet = new ResultSet($this, $statement);
 		
 		return $resultSet;
 	}
 
 	public function getIterator(){
-		//print_r(['Query->resultSet()',$this->mapper()->associations()['Comments']->resultMap()]);
 		return $this->resultSet();
 	}
 

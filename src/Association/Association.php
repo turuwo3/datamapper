@@ -47,7 +47,11 @@ class Association {
 		return $this->foreignKey;
 	}
 
-	public function targetEntityName(){
+	public function getConditions(){
+		return $this->conditions;
+	}
+
+	public function targetEntityClass(){
 		return $this->target()->entityClass();
 	}
 
@@ -74,8 +78,13 @@ class Association {
 		$foreignKey = $this->foreignKey();
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$foreignKey];
-			$this->resultMap[$key][] = $assoc;
+			$this->resultMap[$key][] =
+				$this->load($assoc);
 		}
+	}
+
+	protected function load($rowData){
+		return $this->target()->load($rowData);
 	}
 
 	public function find(){

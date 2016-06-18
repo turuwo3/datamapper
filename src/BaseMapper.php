@@ -132,7 +132,7 @@ class BaseMapper implements MapperInterface{
 	public function hasMany($target, $condition = []){
 		$this->addAssociation($target ,new HasMany($this, $target, $condition));
 	}
-
+/*
 	public function loadAssociations($statement){
 		if(!$statement instanceof BufferedStatement){
 			$statement = new BufferedStatement($statement);
@@ -142,16 +142,10 @@ class BaseMapper implements MapperInterface{
 		}
 		return $statement;
 	}
-
+*/
 	public function attachAssociation($entity){
-		//print_r($this->associations()['Comments']->resultMap());
 		foreach($this->associations() as $table => $assoc){
-			$name = $assoc->targetEntityName();
-			$map = $assoc->resultMap();
-			if(!empty($map[$entity->id])){
-		//		print_r($map[$entity->id]);
-				$entity->{$name} =  $map[$entity->id];
-			}
+			$entity->{$table} = $assoc->fetchAssociation($entity->id);
 		}
 	}
 	
@@ -167,9 +161,14 @@ class BaseMapper implements MapperInterface{
 	}
 
 	public function load($rowData){
+		$id = $rowData[$this->primaryKey()];
+		if($this->hasCache($id)){
+			return $this->getCache($id);
+		}
+
 		$obj = $this->createEntity();
 		$this->doLoad($obj, $rowData);
-	
+		$this->setCache($id, $obj);
 		return $obj;
 	}
 

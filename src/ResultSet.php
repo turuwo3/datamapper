@@ -7,6 +7,8 @@ class resultSet implements Iterator{
 
 	private $mapper;
 
+	private $query;
+
 	private $statement;
 
 	private $position = 0;
@@ -17,6 +19,7 @@ class resultSet implements Iterator{
 
 	public function __construct($query, $statement){
 		$this->mapper = $query->mapper();
+		$this->query = $query;
 		$this->statement = $statement;
 		//print_r(['ResultSet->constuct()',$this->mapper->associations()['Comments']->resultMap()]);
 	}
@@ -69,10 +72,21 @@ class resultSet implements Iterator{
 			return $this->mapper->getCache($row[$primaryKey]);
 		}
 		$entity = $this->mapper->load($row);
-		$this->mapper->attachAssociation($entity);
-
+	
+		$associations = $this->mapper->associations();
+		foreach($associations as $table => $assoc){
+			if($this->query->isContain($table)){
+				$this->mapper->attachAssociation($entity);
+			}
+		}
 
 		return $entity;
 	}
 
 }
+
+
+
+
+
+
