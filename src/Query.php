@@ -6,6 +6,8 @@ use TRW\DataMapper\Database\Query as DBQuery;
 use TRW\DataMapper\Driver;
 use TRW\DataMapper\ResultSet;
 use TRW\DataMapper\Database\BufferedStatement;
+use TRW\DataMapper\LazyLoader;
+use TRW\DataMapper\EagerLoader;
 use Exception;
 
 class Query extends DBQuery implements IteratorAggregate{
@@ -71,21 +73,43 @@ class Query extends DBQuery implements IteratorAggregate{
 		return $this->aliasFields;
 	}
 
-	private $with = [];
+	private $eager = [];
 
-	public function with($mapper){
+	public function eager($mapper){
 		if(is_string($mapper)){
 			$mapper = [$mapper];
 		}
 
-		$this->with[] = $mapper;
+		$this->eager[] = $mapper;
+	
+		$this->loadType = 'eager';
+
+		return $this;
+	}
+	
+	private $lazy = [];
+
+	public function lazy($mapper){
+		if(is_string($mapper)){
+			$mapper = [$mapper];
+		}
+
+		$this->lazy[] = $mapper;
+		
+		$this->loadType = 'lazy';
 	
 		return $this;
 	}
 
 	public function hasParts($name){
-		if($name === 'with'){
-			if(empty($this->with)){
+		if($name === 'eager'){
+			if(empty($this->eager)){
+				return false;
+			}
+			return true;
+		}
+		if($name === 'lazy'){
+			if(empty($this->lazy)){
 				return false;
 			}
 			return true;
@@ -94,11 +118,17 @@ class Query extends DBQuery implements IteratorAggregate{
 	}
 
 	public function getParts($name){
-		if($name === 'with'){
-			if(empty($this->with)){
-				throw new Exception('parts with not found');
+		if($name === 'eager'){
+			if(empty($this->eager)){
+				throw new Exception('parts eager not found');
 			}
-			return $this->with;
+			return $this->eager;
+		}
+		if($name === 'lazy'){
+			if(empty($this->lazy)){
+				throw new Exception('parts lazy not found');
+			}
+			return $this->lazy;
 		}
 		return parent::getParts($name);
 	}
@@ -111,15 +141,48 @@ class Query extends DBQuery implements IteratorAggregate{
 		}
 		return $this->eagerLoader;
 	}
+	
+	private $lazyLoader;
+
+	public function lazyLoader(){
+		if($this->lazyLoader === null){
+			$this->lazyLoader = new LazyLoader($this);
+		}
+		return $this->lazyLoader;
+	}
+
+	private $loadType = 'lazy';
+
+	public function hasEager($table){
+		return $this->eagerLoader()->isContain($table);
+	}
+	
+	public function hasLazy($table){
+		return $this->lazyLoader()->isContain($table);
+	}
 
 	public function isContain($table){
-		return $this->eagerLoader()->isContain($table);
+		return $this->lazyLoader()->isContain($table) ||
+			$this->eagerLoader()->isContain($table);
+	}
+
+	public function getContain(){
+		if($this->loadType === 'eager'){
+			return $this->eagerLoader()->contain($this);
+		}
+		return $this->lazyLoader()->contain($this);
+	}
+
+	public function isLoadType($type){
+		return $this->loadType === $type;
 	}
 
 	public function resultSet(){
 		$statement = new BufferedStatement($this->execute());
 
-		$statement = $this->eagerLoader()->eagerLoad($statement);
+		if($this->isLoadType('eager')){
+			$statement = $this->eagerLoader()->load($statement);
+		}
 
 		$resultSet = new ResultSet($this, $statement);
 		

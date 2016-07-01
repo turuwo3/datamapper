@@ -54,7 +54,7 @@ class Association {
 	public function targetEntityClass(){
 		return $this->target()->entityClass();
 	}
-
+/*
 	public function fetchAssociation($id){
 		if(empty($this->resultMap[$id])){
 			return null;
@@ -62,28 +62,44 @@ class Association {
 		return $this->resultMap[$id];
 	}
 
+	public function attachName(){
+		$name = substr($this->target, 0, -6);
+		return $name;
+	}
+*/
+	public function attach($entity){
+		$id = $this->source()->primaryKey();
+		if(empty($this->resultMap[$entity->{$id}])){
+			return null;
+		}
+		 return $this->resultMap[$entity->{$id}];
+	}
+
 	public function resultMap(){
 		return $this->resultMap;
 	}
 
-	public function loadAssociation($statement){
-		foreach($statement as $row){
-			$id = $this->source()->primaryKey();
-			$in[] = $row[$id];
-		}
-	
+	public function loadAssociation($sql){
 		$finder = $this->find();
-		$finder->where([$this->foreignKey()=>$in]);
-
+		$finder->where($sql);
 		$foreignKey = $this->foreignKey();
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$foreignKey];
-			$this->resultMap[$key][] =
-				$this->load($assoc);
+			$entity = $this->load($assoc);
+			if(!empty($this->resultMap[$key])){
+				if(!in_array($entity ,$this->resultMap[$key], true)){
+					$this->resultMap[$key][] =
+						$entity;
+				}
+			}else{
+				$this->resultMap[$key][] =
+					$entity;
+			}
 		}
+		return $this->resultMap;
 	}
 
-	protected function load($rowData){
+	public function load($rowData){
 		return $this->target()->load($rowData);
 	}
 

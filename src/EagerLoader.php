@@ -37,8 +37,8 @@ class EagerLoader {
 	}
 
 	public function contain($query){
-		if($query->hasParts('with')){
-			$this->contain = $this->formatAll($query->getParts('with'));
+		if($query->hasParts('eager')){
+			$this->contain = $this->formatAll($query->getParts('eager'));
 		}
 		if(is_array($query)){
 			$this->contain = $this->formatAll($query);
@@ -60,19 +60,33 @@ class EagerLoader {
 		return $this->mapper->associations();
 	}
 
-	public function eagerLoad($statement){
+	public function load($statement){
 		if(!$statement instanceof BufferedStatement){
 			$statement = new BufferedStatement($statement);
 		}
 		$assocs = $this->associations();
 		foreach($assocs as $table => $assoc){
 			if($this->isContain($table)){
-				$assoc->loadAssociation($statement);
+				$doLoad = $this->doLoad($assoc, $statement);
+				$assoc->loadAssociation($doLoad);
 			}
 		}
 		return $statement;
 	}
 
+	protected function doLoad($assoc, $statement){
+		if(!$statement instanceof BufferedStatement){
+			$statement = new BufferedStatement($statement);
+		}
+		foreach($statement as $row){
+			$id = $assoc->source()->primaryKey();
+			$in[] = $row[$id];
+		}
+	
+		$whereIn = [$assoc->foreignKey()=>$in];
+
+		return $whereIn;
+	}
 
 }
 
