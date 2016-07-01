@@ -113,7 +113,7 @@ class LazyLoader {
 			if(array_key_exists($current, $assocs)){
 				$assoc = $assocs[$current];
 			}else{
-				throw new Exception('association is not found');
+				throw new Exception("association {$current} is not found");
 			}
 	
 			if(empty($stack[$current])){

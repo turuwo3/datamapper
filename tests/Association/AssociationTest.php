@@ -13,6 +13,16 @@ class ParentsMapper extends BaseMapper {
 	}
 }
 class Parents extends Entity {
+
+	private $Child = [];
+
+	public function setChilds($child){
+		$this->Child[] = $child;
+	}
+
+	public function &getChids(){
+		return $this->Child;
+	}
 }
 class ChildsMapper extends BaseMapper {
 	public function entityClass($name = null){
@@ -20,6 +30,13 @@ class ChildsMapper extends BaseMapper {
 	}
 }
 class Child extends Entity {
+	private $Grandson = [];
+	public function setGrandsons($grandson){
+		$this->Grandson[] = $grandson;
+	}
+	public function &getGrandsons(){
+		return $this->Grandson;
+	}
 }
 class GrandsonsMapper extends BaseMapper {
 	public function entityClass($name = null){
@@ -75,7 +92,38 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 
 		$resultSet = $parents->resultSet();
 		$toArray = $resultSet->toArray();
-		print_r($toArray);
+		
+		$parent1 = $toArray[0];
+		$this->assertEquals([1, 'parent1'],
+			[$parent1->id, $parent1->name]);
+			
+			$child1 = $parent1->Childs;
+			$this->assertEquals([1,'child1'],
+				[$child1[0]->id,$child1[0]->name]);
+			
+				$grandson1 = $child1[0]->Grandsons;
+				$this->assertEquals([1, 'grandson1'],
+					[$grandson1[0]->id, $grandson1[0]->name]);
+				$this->assertEquals([2, 'grandson1-2'],
+					[$grandson1[1]->id, $grandson1[1]->name]);
+
+			$this->assertEquals([2,'child1-2'],
+				[$child1[1]->id,$child1[1]->name]);
+				
+				$grandson2 = $child1[1]->Grandsons;
+				$this->assertEquals([3, 'grandson2'],
+					[$grandson2[0]->id, $grandson2[0]->name]);
+		
+		$parent2 = $toArray[1];
+		$this->assertEquals([2, 'parent2'],
+			[$parent2->id, $parent2->name]);
+		
+			$child3 = $parent2->Childs;
+			$this->assertEquals([3, 'child2'],
+				[$child3[0]->id, $child3[0]->name]);
+
+				$emptyTrue = empty($child3->Grandsons);	
+				$this->assertEquals(true, $emptyTrue);
 	}
 
 
