@@ -4,7 +4,10 @@ namespace TRW\DataMapper;
 use TRW\DataMapper\Util\Inflector;
 use TRW\DataMapper\MapperInterface;
 use TRW\DataMapper\IdentityMap;
+use TRW\DataMapper\Association\HasOne;
 use TRW\DataMapper\Association\HasMany;
+use TRW\DataMapper\Association\BelongsTo;
+use TRW\DataMapper\Association\BelongsToMany;
 use TRW\DataMapper\Database\BufferedStatement;
 
 class BaseMapper implements MapperInterface{
@@ -129,9 +132,23 @@ class BaseMapper implements MapperInterface{
 		$this->associations[$targetClass] = $assoc;
 	}
 
+	public function hasOne($target, $condition = []){
+		$this->addAssociation($target ,new HasOne($this, $target, $condition));
+	}
+
 	public function hasMany($target, $condition = []){
 		$this->addAssociation($target ,new HasMany($this, $target, $condition));
 	}
+	
+	public function belongsTo($target, $condition = []){
+		$this->addAssociation($target ,new BelongsTo($this, $target, $condition));
+	}
+	
+	public function belongsToMany($target, $condition = []){
+		$this->addAssociation($target ,new BelongsToMany($this, $target, $condition));
+	}
+
+
 /*
 	public function loadAssociations($statement){
 		if(!$statement instanceof BufferedStatement){

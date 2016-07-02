@@ -140,15 +140,7 @@ class LazyLoader {
 		$doLoad = $this->doLoad($assoc, $entity);
 		return $assoc->loadAssociation($doLoad);
 	}
-/*
-	private function findRow($assoc, $entity){
-		$doLoad = $this->doLoad($assoc, $entity);		
-		$rows = $assoc->find()
-			->where($doLoad)
-			->execute();
-		return $rows;
-	}
-*/
+
 	protected function doLoad($assoc, $entity){
 		$id = $assoc->source()->primaryKey();
 		$foreignKey = $assoc->foreignKey();

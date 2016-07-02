@@ -21,7 +21,6 @@ class resultSet implements Iterator{
 		$this->mapper = $query->mapper();
 		$this->query = $query;
 		$this->statement = $statement;
-		//print_r(['ResultSet->constuct()',$this->mapper->associations()['Comments']->resultMap()]);
 	}
 
 	public function rewind(){
@@ -95,7 +94,7 @@ class resultSet implements Iterator{
 			}else{
 				if(array_key_exists($table, $assocs)){
 					$assoc = $assocs[$table];
-					$attach = $assoc->fetchAssociation($$entity);
+					$attach = $assoc->fetchResult($$entity);
 					$entity->{$table} = $attach;
 				}
 			}		
@@ -107,20 +106,26 @@ class resultSet implements Iterator{
 		$dummy = $entity;
 		$current = array_shift($chain);
 		
-		$cache = $dummy;
 		while($current !== null){
 			if(array_key_exists($current, $assocs)){
 				$assoc = $assocs[$current];
 			}else{
-				throw new Exception('association is not found');
+				throw new Exception("association {$current} is not found");
 			}
 		
 			if(is_array($dummy)){
+				$results = [];
 				foreach($dummy as $d){
-					$this->fetchRecursive($assoc, $d, $current);
-				}
+					$resultMap = $this->fetchAssoc($assoc, $d, $current);
+					if($resultMap !== null){
+						foreach($resultMap as $value){
+							$results[] = $value;
+						}
+					}
+				}	
+				$dummy = $results;
 			}else{
-				$dummy = $this->fetchRecursive($assoc, $dummy, $current);
+				$dummy = $this->fetchAssoc($assoc, $dummy, $current);
 			}
 			
 			$mapper = $assoc->target();
@@ -129,9 +134,10 @@ class resultSet implements Iterator{
 		}
 	}
 
-	private function fetchRecursive($assoc, $entity, $conjection){
-		$entity->{$conjection} = $assoc->attach($entity);
-		return $entity->{$conjection};
+	private function fetchAssoc($assoc, $entity, $conjection){
+		$result = $assoc->fetchResult($entity);	
+		$entity->{$conjection} = $result;
+		return $result;
 	}
 
 	public function toArray(){
