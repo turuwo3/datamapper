@@ -2,6 +2,7 @@
 namespace TRW\DataMapper;
 
 use TRW\DataMapper\Database\BufferedStatement;
+use Exception;
 
 class EagerLoader {
 
@@ -9,51 +10,9 @@ class EagerLoader {
 
 	private $query;
 
-	private $contain = [];
-
 	public function __construct($query){
 		$this->mapper = $query->mapper();
 		$this->query = $query;
-		$this->contain($query);
-	}
-
-	private function format($param){
-		$key = key($param);
-		if(is_int($key)){
-			$newKey = $param[$key];
-			$format = [$newKey=>[]];
-		}else{
-			return $param;
-		}
-		return $format;
-	}
-
-	private function formatAll($params){
-		$result = [];
-		foreach($params as $param){
-			$result = $this->format($param) + $result;
-		}
-		return $result;
-	}
-
-	public function contain($query){
-		if($query->hasParts('eager')){
-			$this->contain = $this->formatAll($query->getParts('eager'));
-		}
-		if(is_array($query)){
-			$this->contain = $this->formatAll($query);
-		}
-		if(is_string($query)){
-			$this->contain = $this->formatAll([$query]);
-		}
-		return $this->contain;
-	}
-	
-	public function isContain($table){
-		if(array_key_exists($table, $this->contain)){
-			return true;
-		}
-		return false;
 	}
 
 	private function associations(){
@@ -65,13 +24,55 @@ class EagerLoader {
 			$statement = new BufferedStatement($statement);
 		}
 		$assocs = $this->associations();
-		foreach($assocs as $table => $assoc){
-			if($this->isContain($table)){
-				$doLoad = $this->doLoad($assoc, $statement);
-				$assoc->loadAssociation($doLoad);
+		$contains = $this->query->getContain();
+		foreach($contains as $table => $option){
+			if(strpos($table, '.')){
+				$chain = explode('.', $table);
+				$this->loadChain($chain, $statement);
+			}
+			if(array_key_exists($table, $assocs)){
+				$this->loadAssociation($assocs[$table], $statement);
 			}
 		}
 		return $statement;
+	}
+
+	private function loadChain($chain, $statement){
+		$assocs = $this->associations();
+		$newStatement = $statement;
+		$current = array_shift($chain);
+
+		while($current !== null){
+			if(array_key_exists($current, $assocs)){
+				$assoc = $assocs[$current];
+			}else{
+				throw new Exception("association {$current} is not found");
+			}
+
+			$newStatement = $this->loadAssociation($assoc, $newStatement);
+
+			$current = array_shift($chain);
+			$mapper = $assoc->target();
+			$assocs = $mapper->associations();
+		}
+
+	}
+
+	private function loadAssociation($assoc, $statement){
+		$whereIn = $this->doLoad($assoc, $statement);
+		$resultMap = $assoc->loadAssociation($whereIn);
+		$id = $assoc->source()->primaryKey();
+		$result = [];
+		foreach($resultMap as $foreignKey){
+			foreach($foreignKey as $entity){
+				$result[] = $entity->{$id};
+			}
+		}
+		$targetIn = [$assoc->foreignKey()=>$result];
+		$finder = $assoc->find()
+			->where($targetIn);
+	
+		return $finder->execute();
 	}
 
 	protected function doLoad($assoc, $statement){
@@ -84,7 +85,6 @@ class EagerLoader {
 		}
 	
 		$whereIn = [$assoc->foreignKey()=>$in];
-
 		return $whereIn;
 	}
 

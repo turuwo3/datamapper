@@ -78,27 +78,23 @@ class resultSet implements Iterator{
 			if($this->query->isLoadType('lazy')){
 				$this->query->lazyLoader()->load($entity);
 			}
-			$this->attach($entity);
+			$this->attach($assocs, $table, $entity);
 		}
 
 		return $entity;
 	}
 
-	private function attach($entity){
-		$assocs = $this->mapper->associations();
-		$contains = $this->query->getContain($this->query);
-		foreach($contains as $table => $option){
-			if(strpos($table, '.') !== false){
-				$chain = explode('.', $table);
-				$this->attachChain($chain, $entity);
-			}else{
-				if(array_key_exists($table, $assocs)){
-					$assoc = $assocs[$table];
-					$attach = $assoc->fetchResult($$entity);
-					$entity->{$table} = $attach;
-				}
-			}		
-		}
+	private function attach($assocs, $table, $entity){
+		if(strpos($table, '.') !== false){
+			$chain = explode('.', $table);
+			$this->attachChain($chain, $entity);
+		}else{
+			if(array_key_exists($table, $assocs)){
+				$assoc = $assocs[$table];
+				$attach = $assoc->fetchResult($entity);
+				$entity->{$table} = $attach;
+			}
+		}		
 	}
 
 	private function attachChain($chain, $entity){

@@ -33,6 +33,14 @@ class Parents extends Entity {
 	public function &getChilds(){
 		return $this->Childs;
 	}
+
+	private $Parentprofiles;
+	public function setParentprofiles($p){
+		$this->Parentprofiles = $p;
+	}
+	public function &getParentprofiles(){
+		return $this->Parentprofiles;
+	}
 }
 class ChildsMapper extends BaseMapper {
 	public function entityClass($name = null){
@@ -70,6 +78,15 @@ class GreatgrandchildsMapper extends BaseMapper {
 class Greatgrandchild extends Entity {
 }
 
+
+class ParentprofilesMapper extends BaseMapper{
+	public function entityClass($name = null){
+		return 'Parentprofile';
+	}
+}
+class Parentprofile extends Entity {
+}
+
 class MapperTest extends \PHPUnit_Framework_TestCase {
 
 	protected static $driver;
@@ -84,7 +101,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 
 	public function setUp(){
 		$d = self::$driver;
-	
+	/*
 		$d->query("DELETE FROM grandfathers");
 		$d->query("DELETE FROM parents");
 		$d->query("DELETE FROM childs");
@@ -102,6 +119,11 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$d->query("INSERT INTO greatgrandchilds(id, name, grandson_id) VALUES
 			(1, 'grandsonchild1', 1), (2, 'grandsonchild1-2', 1),
 			(3, 'grandsonchild2', 2), (4, 'gransonchild4', 3)");
+
+$d->query("DELETE FROM parentprofiles");
+$d->query("INSERT INTO parentprofiles(id, body, parent_id) VALUES 
+	(1, 'profile1', 1),(2, 'profile2', 2)");
+*/
 		/*
 		$d->query("INSERT INTO parents(id, name) VALUES 
 			(1, 'parent1'),(2, 'parent2')");
@@ -117,14 +139,15 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$gfmapper->hasMany('Parents');
 		$pmapper =\TRW\DataMapper\MapperRegistry::get('ParentsMapper');
 		$pmapper->hasMany('Childs');
+$pmapper->hasOne('Parentprofiles');
 		$cmapper = \TRW\DataMapper\MapperRegistry::get('ChildsMapper');
 		$cmapper->hasMany('Grandsons');
 		$gmapper = \TRW\DataMapper\MapperRegistry::get('GrandsonsMapper');
 		$gmapper->hasMany('Greatgrandchilds');
 
 		$grandfathers = $gfmapper->find()
-			->lazy('Parents.Childs.Grandsons.Greatgrandchilds');
-
+			->eager(['Parents.Parentprofiles','Parents.Childs']);
+//print_r($grandfathers->getContain('lazy'));
 		$resultSet = $grandfathers->resultSet();
 		$toArray = $resultSet->toArray();
 /*		

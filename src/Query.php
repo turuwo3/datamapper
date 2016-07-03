@@ -73,14 +73,27 @@ class Query extends DBQuery implements IteratorAggregate{
 		return $this->aliasFields;
 	}
 
+
+	private function formatContain($contains){
+		$result = [];
+		foreach($contains as $contain => $condition){
+			if(is_int($contain)){
+				$contain = $condition;
+				$condition = [];
+				$result[$contain] = $condition;
+				continue;
+			}
+			$result[$contain] = $condition;
+		}
+		return $result;
+	}
+
 	private $eager = [];
 
-	public function eager($mapper){
-		if(is_string($mapper)){
-			$mapper = [$mapper];
-		}
+	public function eager($contain){
+		$format = $this->formatContain($contain);
 
-		$this->eager[] = $mapper;
+		$this->eager = array_merge($this->eager, $format);;
 	
 		$this->loadType = 'eager';
 
@@ -89,12 +102,9 @@ class Query extends DBQuery implements IteratorAggregate{
 	
 	private $lazy = [];
 
-	public function lazy($mapper){
-		if(is_string($mapper)){
-			$mapper = [$mapper];
-		}
-
-		$this->lazy[] = $mapper;
+	public function lazy($contain){
+		$format = $this->formatContain($contain);
+		$this->lazy = array_merge($this->lazy, $format);
 		
 		$this->loadType = 'lazy';
 	
@@ -153,24 +163,11 @@ class Query extends DBQuery implements IteratorAggregate{
 
 	private $loadType = 'lazy';
 
-	public function hasEager($table){
-		return $this->eagerLoader()->isContain($table);
-	}
-	
-	public function hasLazy($table){
-		return $this->lazyLoader()->isContain($table);
-	}
-
-	public function isContain($table){
-		return $this->lazyLoader()->isContain($table) ||
-			$this->eagerLoader()->isContain($table);
-	}
-
 	public function getContain(){
 		if($this->loadType === 'eager'){
-			return $this->eagerLoader()->contain($this);
+			return $this->eager;
 		}
-		return $this->lazyLoader()->contain($this);
+		return $this->lazy;
 	}
 
 	public function isLoadType($type){
