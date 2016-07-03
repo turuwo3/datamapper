@@ -78,10 +78,23 @@ class Association {
 		return $this->resultMap;
 	}
 
+	protected function isEmpty($index){
+		return empty($this->resultMap[$index]);
+	}
+
+	protected function isContain($index, $entity){
+		return in_array($entity ,$this->resultMap[$index], true);
+	}
+	
+	protected function addResultMap($index, $entity){
+		$this->resultMap[$index][] = $entity;
+	}
+
 	public function loadAssociation($sql){
 		$finder = $this->find();
 		$finder->where($sql);
 		$foreignKey = $this->foreignKey();
+print_r([$sql]);
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$foreignKey];
 			$entity = $this->load($assoc);

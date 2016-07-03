@@ -16,6 +16,10 @@ class Query extends QueryBuilder {
 		return $this->driver;
 	}
 
+	public function tableExists($table){
+		return $this->driver()->tableExists($table);
+	}
+
 	public function execute(){
 		$statement = $this->driver->run($this);
 		

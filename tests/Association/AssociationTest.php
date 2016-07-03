@@ -6,6 +6,7 @@ use TRW\DataMapper\BaseMapper;
 use TRW\DataMapper\Database\Driver\MySql;
 use TRW\DataMapper\Entity;
 use TRW\DataMapper\MapperRegistry;
+
 class GrandfathersMapper extends BaseMapper {
 	public function entityClass($name = null){
 		return 'Grandfather';
@@ -87,6 +88,65 @@ class ParentprofilesMapper extends BaseMapper{
 class Parentprofile extends Entity {
 }
 
+
+
+class PostsMapper extends BaseMapper {
+	public function entityClass($name = null){
+		return 'Post';
+	}
+}
+class Post extends Entity {
+	private $Tags = [];
+	public function setTags($tags){
+		$this->Tags = $tags;
+	}
+	public function &getTags(){
+		return $this->Tags;
+	}
+}
+class TagsMapper extends BaseMapper {
+	public function entityClass($name = null){
+		return 'Tag';
+	}
+}
+class Tag extends Entity {
+	private $Posts = [];
+	public function setPosts($posts){
+		$this->Posts = $posts;
+	}
+	public function &getPosts(){
+		return $this->Posts;
+	}
+}
+class UsersMapper extends BaseMapper {
+	public function entityClass($name = null){
+		return 'User';
+	}
+}
+class User extends Entity {
+	private $Profiles;
+	public function setProfiles($profile){
+		$this->Profile = $profile;
+	}
+	public function &getProfiles(){
+		return $this->Profiles;
+	}
+}
+class ProfilesMapper extends BaseMapper {
+	public function entityClass($name = null){
+		return 'Profile';
+	}
+}
+class Profile extends Entity{
+	private $Users;
+	public function setUsers($user){
+		$this->Users = $user;
+	}
+	public function &getUsers(){
+		return $this->Users;
+	}
+}
+
 class MapperTest extends \PHPUnit_Framework_TestCase {
 
 	protected static $driver;
@@ -120,29 +180,74 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 			(1, 'grandsonchild1', 1), (2, 'grandsonchild1-2', 1),
 			(3, 'grandsonchild2', 2), (4, 'gransonchild4', 3)");
 
-$d->query("DELETE FROM parentprofiles");
-$d->query("INSERT INTO parentprofiles(id, body, parent_id) VALUES 
-	(1, 'profile1', 1),(2, 'profile2', 2)");
+		$d->query("DELETE FROM parentprofiles");
+		$d->query("INSERT INTO parentprofiles(id, body, parent_id) VALUES 
+			(1, 'profile1', 1),(2, 'profile2', 2)");
 
-		/*
-		$d->query("INSERT INTO parents(id, name) VALUES 
-			(1, 'parent1'),(2, 'parent2')");
-		$d->query("INSERT INTO childs(id, name, parent_id) VALUES
-			(1, 'child1', 1), (2, 'child1-2', 2), (3, 'child2', 2)");
-		$d->query("INSERT INTO grandsons(id, name, child_id) VALUES
-			(1, 'grandson1', 1), (2, 'grandson1-2', 2), (3, 'grandson2', 2)");
-		*/
+		
+		$d->query("DELETE FROM posts");
+		$d->query("INSERT INTO posts(id, body) VALUES 
+			(1, 'post1'),(2, 'post2')");
+		$d->query("DELETE FROM tags");
+		$d->query("INSERT INTO tags(id, name) VALUES
+			(1, 'tag1'), (2, 'tag2'), (3, 'tag3')");
+		$d->query("DELETE FROM posts_tags");
+		$d->query("INSERT INTO posts_tags(id, post_id, tag_id)  VALUES
+			(1, 1, 1), (2, 1, 2), (3, 2, 3)");
+		
+		$d->query("DELETE FROM users");
+		$d->query("INSERT INTO users(id, name) VALUES
+			(1, 'foo'), (2, 'bar')");
+		$d->query("DELETE FROM profiles");
+		$d->query("INSERT INTO profiles (id, body, user_id) VALUES
+			(1, 'foo profile', 1), (2, 'bar profile', 2)");
 	}
 
+/*
+	public function testBelongsToMany(){
+		$pm = MapperRegistry::get('PostsMapper');
+		$pm->belongsToMany('Tags');
+		$tm = MapperRegistry::get('TagsMapper');
+		$tm->belongsToMany('Posts');
+
+		$tags = $tm->find()
+			->eager(['Posts']);
+		$tagsToArray = $tags->resultSet()->toArray();
+		print_r($tagsToArray);
+	
+		$posts = $pm->find()
+			->lazy(['Tags']);
+		$postsToArray = $posts->resultSet()->toArray();
+		print_r($postsToArray);	
+	}
+*/
+	public function testHasOne (){
+		$um = MapperRegistry::get('UsersMapper');
+		$um->hasOne('Profiles');
+		$pm = MapperRegistry::get('ProfilesMapper');
+		$pm->belongsTo('Users');
+/*
+		$users = $um->find()
+			->lazy(['Profiles']);
+		$usersToArray = $users->resultSet()->toArray();
+		print_r($usersToArray);
+*/
+		$profiles = $pm->find()
+			->lazy(['Users']);
+		$profilesToArray = $profiles->resultSet()->toArray();
+		print_r($profilesToArray);
+	}
+
+/*
 	public function testEagerLoad(){
-		$gfmapper = \TRW\DataMapper\MapperRegistry::get('GrandfathersMapper');
+		$gfmapper = MapperRegistry::get('GrandfathersMapper');
 		$gfmapper->hasMany('Parents');
-		$pmapper =\TRW\DataMapper\MapperRegistry::get('ParentsMapper');
+		$pmapper =MapperRegistry::get('ParentsMapper');
 		$pmapper->hasMany('Childs');
 $pmapper->hasOne('Parentprofiles');
-		$cmapper = \TRW\DataMapper\MapperRegistry::get('ChildsMapper');
+		$cmapper = MapperRegistry::get('ChildsMapper');
 		$cmapper->hasMany('Grandsons');
-		$gmapper = \TRW\DataMapper\MapperRegistry::get('GrandsonsMapper');
+		$gmapper = MapperRegistry::get('GrandsonsMapper');
 		$gmapper->hasMany('Greatgrandchilds');
 
 		$grandfathers = $gfmapper->find()
@@ -217,19 +322,19 @@ $pmapper->hasOne('Parentprofiles');
 				$this->assertEquals(3, $child3->id);
 				$this->assertEquals(2, $child3->parent_id);
 
-		print_r($toArray);
+	//	print_r($toArray);
 	}
 
 
 	public function testLazyLoad(){
-		$gfmapper = \TRW\DataMapper\MapperRegistry::get('GrandfathersMapper');
+		$gfmapper = MapperRegistry::get('GrandfathersMapper');
 		$gfmapper->hasMany('Parents');
-		$pmapper =\TRW\DataMapper\MapperRegistry::get('ParentsMapper');
+		$pmapper = MapperRegistry::get('ParentsMapper');
 		$pmapper->hasMany('Childs');
 $pmapper->hasOne('Parentprofiles');
-		$cmapper = \TRW\DataMapper\MapperRegistry::get('ChildsMapper');
+		$cmapper = MapperRegistry::get('ChildsMapper');
 		$cmapper->hasMany('Grandsons');
-		$gmapper = \TRW\DataMapper\MapperRegistry::get('GrandsonsMapper');
+		$gmapper = MapperRegistry::get('GrandsonsMapper');
 		$gmapper->hasMany('Greatgrandchilds');
 
 		$grandfathers = $gfmapper->find()
@@ -304,10 +409,11 @@ $pmapper->hasOne('Parentprofiles');
 				$this->assertEquals(3, $child3->id);
 				$this->assertEquals(2, $child3->parent_id);
 
-		print_r($toArray);
+	//	print_r($toArray);
 	}
 
-
+*/
+	
 
 
 }
