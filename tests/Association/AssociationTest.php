@@ -101,7 +101,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 
 	public function setUp(){
 		$d = self::$driver;
-	/*
+	
 		$d->query("DELETE FROM grandfathers");
 		$d->query("DELETE FROM parents");
 		$d->query("DELETE FROM childs");
@@ -123,7 +123,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 $d->query("DELETE FROM parentprofiles");
 $d->query("INSERT INTO parentprofiles(id, body, parent_id) VALUES 
 	(1, 'profile1', 1),(2, 'profile2', 2)");
-*/
+
 		/*
 		$d->query("INSERT INTO parents(id, name) VALUES 
 			(1, 'parent1'),(2, 'parent2')");
@@ -134,7 +134,7 @@ $d->query("INSERT INTO parentprofiles(id, body, parent_id) VALUES
 		*/
 	}
 
-	public function testAssoc(){
+	public function testEagerLoad(){
 		$gfmapper = \TRW\DataMapper\MapperRegistry::get('GrandfathersMapper');
 		$gfmapper->hasMany('Parents');
 		$pmapper =\TRW\DataMapper\MapperRegistry::get('ParentsMapper');
@@ -146,46 +146,166 @@ $pmapper->hasOne('Parentprofiles');
 		$gmapper->hasMany('Greatgrandchilds');
 
 		$grandfathers = $gfmapper->find()
-			->eager(['Parents.Parentprofiles','Parents.Childs']);
-//print_r($grandfathers->getContain('lazy'));
+			->eager([
+					'Parents.Parentprofiles',
+					'Parents.Childs.Grandsons.Greatgrandchilds',
+				]);
+
 		$resultSet = $grandfathers->resultSet();
 		$toArray = $resultSet->toArray();
-/*		
-		$parent1 = $toArray[0];
-		$this->assertEquals([1, 'parent1'],
-			[$parent1->id, $parent1->name]);
-			
-			$child1 = $parent1->Childs;
-			$this->assertEquals([1,'child1'],
-				[$child1[0]->id,$child1[0]->name]);
-			
-				$grandson1 = $child1[0]->Grandsons;
-				$this->assertEquals([1, 'grandson1'],
-					[$grandson1[0]->id, $grandson1[0]->name]);
-				$this->assertEquals([2, 'grandson1-2'],
-					[$grandson1[1]->id, $grandson1[1]->name]);
 
-			$this->assertEquals([2,'child1-2'],
-				[$child1[1]->id,$child1[1]->name]);
+		//変数の後ろの数字はレコードのID
+		$grandfather1 = $toArray[0];
+		$this->assertEquals(1, $grandfather1->id);	
+
+			$parent1 = $grandfather1->Parents[0];
+			$this->assertEquals(1, $parent1->id);
+			$this->assertEquals(1, $parent1->grandfather_id);
+
+			$profile1 = $parent1->Parentprofiles;
+			$this->assertEquals(1, $profile1->id);
+			$this->assertEquals(1, $profile1->parent_id);
+	
+				$child1 = $parent1->Childs[0];
+				$this->assertEquals(1, $child1->id);
+				$this->assertEquals(1, $child1->parent_id);
+	
+					$grandson1 = $child1->Grandsons[0];
+					$this->assertEquals(1, $grandson1->id);
+					$this->assertEquals(1, $grandson1->child_id);
+	
+						$grandsonchild1 = $grandson1->Greatgrandchilds[0];
+						$this->assertEquals(1, $grandsonchild1->id);
+						$this->assertEquals(1, $grandsonchild1->grandson_id);
 				
-				$grandson2 = $child1[1]->Grandsons;
-				$this->assertEquals([3, 'grandson2'],
-					[$grandson2[0]->id, $grandson2[0]->name]);
-		
-		$parent2 = $toArray[1];
-		$this->assertEquals([2, 'parent2'],
-			[$parent2->id, $parent2->name]);
-		
-			$child3 = $parent2->Childs;
-			$this->assertEquals([3, 'child2'],
-				[$child3[0]->id, $child3[0]->name]);
+						$grandsonchild2 = $grandson1->Greatgrandchilds[1];
+						$this->assertEquals(2, $grandsonchild2->id);
+						$this->assertEquals(1, $grandsonchild2->grandson_id);
+	
+					$grandson2 = $child1->Grandsons[1];
+					$this->assertEquals(2, $grandson2->id);
+					$this->assertEquals(1, $grandson2->child_id);
+	
+						$grandsonchild3 = $grandson2->Greatgrandchilds[0];
+						$this->assertEquals(3, $grandsonchild3->id);
+						$this->assertEquals(2, $grandsonchild3->grandson_id);
 
-				$emptyTrue = empty($child3->Grandsons);	
-				$this->assertEquals(true, $emptyTrue);
-*/
-print_r($toArray);
+				$child2 = $parent1->Childs[1];	
+				$this->assertEquals(2, $child2->id);
+				$this->assertEquals(1, $child2->parent_id);
+
+					$grandson3 = $child2->Grandsons[0];
+					$this->assertEquals(3, $grandson3->id);
+					$this->assertEquals(2, $grandson3->child_id);
+
+						$grandsonchild4 = $grandson3->Greatgrandchilds[0];
+						$this->assertEquals(4, $grandsonchild4->id);
+						$this->assertEquals(3, $grandsonchild4->grandson_id);
+
+		$grandfather2 = $toArray[1];
+		$this->assertEquals(2, $grandfather2->id);
+
+			$parent2 = $grandfather2->Parents[0];
+			$this->assertEquals(2, $parent2->id);
+			$this->assertEquals(2, $parent2->grandfather_id);
+
+			$profile2 = $parent2->Parentprofiles;
+			$this->assertEquals(2, $profile2->id);
+			$this->assertEquals(2, $profile2->parent_id);
+
+				$child3 = $parent2->Childs[0];
+				$this->assertEquals(3, $child3->id);
+				$this->assertEquals(2, $child3->parent_id);
+
+		print_r($toArray);
 	}
 
+
+	public function testLazyLoad(){
+		$gfmapper = \TRW\DataMapper\MapperRegistry::get('GrandfathersMapper');
+		$gfmapper->hasMany('Parents');
+		$pmapper =\TRW\DataMapper\MapperRegistry::get('ParentsMapper');
+		$pmapper->hasMany('Childs');
+$pmapper->hasOne('Parentprofiles');
+		$cmapper = \TRW\DataMapper\MapperRegistry::get('ChildsMapper');
+		$cmapper->hasMany('Grandsons');
+		$gmapper = \TRW\DataMapper\MapperRegistry::get('GrandsonsMapper');
+		$gmapper->hasMany('Greatgrandchilds');
+
+		$grandfathers = $gfmapper->find()
+			->lazy([
+					'Parents.Parentprofiles',
+					'Parents.Childs.Grandsons.Greatgrandchilds',
+				]);
+
+		$resultSet = $grandfathers->resultSet();
+		$toArray = $resultSet->toArray();
+
+		//変数の後ろの数字はレコードのID
+		$grandfather1 = $toArray[0];
+		$this->assertEquals(1, $grandfather1->id);	
+
+			$parent1 = $grandfather1->Parents[0];
+			$this->assertEquals(1, $parent1->id);
+			$this->assertEquals(1, $parent1->grandfather_id);
+
+			$profile1 = $parent1->Parentprofiles;
+			$this->assertEquals(1, $profile1->id);
+			$this->assertEquals(1, $profile1->parent_id);
+	
+				$child1 = $parent1->Childs[0];
+				$this->assertEquals(1, $child1->id);
+				$this->assertEquals(1, $child1->parent_id);
+	
+					$grandson1 = $child1->Grandsons[0];
+					$this->assertEquals(1, $grandson1->id);
+					$this->assertEquals(1, $grandson1->child_id);
+	
+						$grandsonchild1 = $grandson1->Greatgrandchilds[0];
+						$this->assertEquals(1, $grandsonchild1->id);
+						$this->assertEquals(1, $grandsonchild1->grandson_id);
+				
+						$grandsonchild2 = $grandson1->Greatgrandchilds[1];
+						$this->assertEquals(2, $grandsonchild2->id);
+						$this->assertEquals(1, $grandsonchild2->grandson_id);
+	
+					$grandson2 = $child1->Grandsons[1];
+					$this->assertEquals(2, $grandson2->id);
+					$this->assertEquals(1, $grandson2->child_id);
+	
+						$grandsonchild3 = $grandson2->Greatgrandchilds[0];
+						$this->assertEquals(3, $grandsonchild3->id);
+						$this->assertEquals(2, $grandsonchild3->grandson_id);
+
+				$child2 = $parent1->Childs[1];	
+				$this->assertEquals(2, $child2->id);
+				$this->assertEquals(1, $child2->parent_id);
+
+					$grandson3 = $child2->Grandsons[0];
+					$this->assertEquals(3, $grandson3->id);
+					$this->assertEquals(2, $grandson3->child_id);
+
+						$grandsonchild4 = $grandson3->Greatgrandchilds[0];
+						$this->assertEquals(4, $grandsonchild4->id);
+						$this->assertEquals(3, $grandsonchild4->grandson_id);
+
+		$grandfather2 = $toArray[1];
+		$this->assertEquals(2, $grandfather2->id);
+
+			$parent2 = $grandfather2->Parents[0];
+			$this->assertEquals(2, $parent2->id);
+			$this->assertEquals(2, $parent2->grandfather_id);
+
+			$profile2 = $parent2->Parentprofiles;
+			$this->assertEquals(2, $profile2->id);
+			$this->assertEquals(2, $profile2->parent_id);
+
+				$child3 = $parent2->Childs[0];
+				$this->assertEquals(3, $child3->id);
+				$this->assertEquals(2, $child3->parent_id);
+
+		print_r($toArray);
+	}
 
 
 
