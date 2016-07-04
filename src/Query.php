@@ -253,7 +253,6 @@ class Query extends DBQuery implements IteratorAggregate{
 				$result[$key] = $value;
 			}
 		}
-
 		parent::set($result, $overwrite);
 
 		return $this;

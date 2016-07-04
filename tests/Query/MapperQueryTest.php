@@ -59,7 +59,18 @@ class MockMapper implements MapperInterface {
 		return false;
 	}
 	public function load($rowData){
-		return $this->createEntity($rowData);
+		$entity = $this->createEntity($rowData);
+		$this->doLoad($entity, $rowData);
+		$entity->clean();
+		return $entity;
+	}
+	protected function doLoad($obj, $rowData){
+		$schema = $this->fields();
+		foreach($schema as $column){
+			if(array_key_exists($column, $rowData)){
+				$obj->{$column} = $rowData[$column];
+			}
+		}
 	}
 	public function createEntity($data){
 		return new User($data);
@@ -70,11 +81,6 @@ class MockMapper implements MapperInterface {
 }
 
 class User extends Entity {
-	public $data;
-
-	public function __construct($data = []){
-		$this->data = $data;
-	}
 }
 
 class MapperQueryTest extends PHPUnit_Framework_TestCase {
@@ -118,6 +124,14 @@ class MapperQueryTest extends PHPUnit_Framework_TestCase {
 				'age'=>10
 			]
 		],$result->fetchAll());
+	}
+
+	public function testfirst(){
+		$query = new Query(self::$mapper);
+		$query->find()
+			->where(['id ='=>1]);
+		$user = $query->resultSet()->first();
+		$this->assertInstanceOf('User', $user);
 	}
 
 	public function testInsert(){

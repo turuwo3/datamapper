@@ -26,6 +26,9 @@ class Query extends QueryBuilder {
 		return $statement;
 	}
 
+	public function lastInsertId(){
+		return $this->driver->lastInsertId();
+	}
 
 
 }

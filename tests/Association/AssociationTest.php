@@ -17,7 +17,7 @@ class Grandfather extends Entity {
 	public function setParents($parents){
 		$this->Parents = $parents;
 	}
-	public function &getParents(){
+	public function getParents(){
 		return $this->Parents;
 	}
 }
@@ -31,7 +31,7 @@ class Parents extends Entity {
 	public function setChilds($child){
 		$this->Childs = $child;
 	}
-	public function &getChilds(){
+	public function getChilds(){
 		return $this->Childs;
 	}
 
@@ -39,7 +39,7 @@ class Parents extends Entity {
 	public function setParentprofiles($p){
 		$this->Parentprofiles = $p;
 	}
-	public function &getParentprofiles(){
+	public function getParentprofiles(){
 		return $this->Parentprofiles;
 	}
 }
@@ -53,7 +53,7 @@ class Child extends Entity {
 	public function setGrandsons($grandson){
 		$this->Grandsons = $grandson;
 	}
-	public function &getGrandsons(){
+	public function getGrandsons(){
 		return $this->Grandsons;
 	}
 }
@@ -67,7 +67,7 @@ class Grandson extends Entity {
 	public function setGreatgrandchilds($greatgrandchild){
 		$this->Greatgrandchilds = $greatgrandchild;
 	}
-	public function &getGreatgrandchilds(){
+	public function getGreatgrandchilds(){
 		return $this->Greatgrandchilds;
 	}
 }
@@ -100,7 +100,7 @@ class Post extends Entity {
 	public function setTags($tags){
 		$this->Tags = $tags;
 	}
-	public function &getTags(){
+	public function getTags(){
 		return $this->Tags;
 	}
 }
@@ -114,7 +114,7 @@ class Tag extends Entity {
 	public function setPosts($posts){
 		$this->Posts = $posts;
 	}
-	public function &getPosts(){
+	public function getPosts(){
 		return $this->Posts;
 	}
 }
@@ -124,11 +124,15 @@ class UsersMapper extends BaseMapper {
 	}
 }
 class User extends Entity {
+	public $id;
+	public $name;
+
 	private $Profiles;
+
 	public function setProfiles($profile){
 		$this->Profiles = $profile;
 	}
-	public function &getProfiles(){
+	public function getProfiles(){
 		return $this->Profiles;
 	}
 }
@@ -142,7 +146,7 @@ class Profile extends Entity{
 	public function setUsers($user){
 		$this->Users = $user;
 	}
-	public function &getUsers(){
+	public function getUsers(){
 		return $this->Users;
 	}
 }
@@ -430,7 +434,32 @@ $pmapper->hasOne('Parentprofiles');
 	}
 
 
-	
+	public function testInsert(){
+		$um = MapperRegistry::get('UsersMapper');
+		$user = new User();
+		$user->name = 'new user';
+		
+		$this->assertTrue($um->save($user));
+		
+		$user2 = $um->find()
+			->orderDesc('id')
+			->resultSet()
+			->first();
+
+		$this->assertSame($user2, $user);
+	}
+
+	public function testUpdate(){
+		$um = MapperRegistry::get('UsersMapper');
+		$user = $um->find()
+			->where(['id ='=>1])
+			->resultSet()
+			->first();
+
+		$user->name = 'modified';
+		$this->assertTrue($um->save($user));
+		
+	}
 
 
 }

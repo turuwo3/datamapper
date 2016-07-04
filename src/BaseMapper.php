@@ -9,6 +9,7 @@ use TRW\DataMapper\Association\HasMany;
 use TRW\DataMapper\Association\BelongsTo;
 use TRW\DataMapper\Association\BelongsToMany;
 use TRW\DataMapper\Database\BufferedStatement;
+use Exception;
 
 class BaseMapper implements MapperInterface{
 
@@ -147,26 +148,7 @@ class BaseMapper implements MapperInterface{
 	public function belongsToMany($target, $condition = []){
 		$this->addAssociation($target ,new BelongsToMany($this, $target, $condition));
 	}
-
-
-/*
-	public function loadAssociations($statement){
-		if(!$statement instanceof BufferedStatement){
-			$statement = new BufferedStatement($statement);
-		}
-		foreach($this->associations() as $table => $assoc){
-			$assoc->loadAssociation($statement);
-		}
-		return $statement;
-	}
-*/
-	public function attachAssociation($entity){
-		foreach($this->associations() as $table => $assoc){
-			$entity->{$table} = $assoc->fetchAssociation($entity->id);
-		}
-	}
 	
-
 	public function query(){
 		return new Query($this);
 	}
@@ -185,6 +167,7 @@ class BaseMapper implements MapperInterface{
 
 		$obj = $this->createEntity();
 		$this->doLoad($obj, $rowData);
+		$obj->clean();
 		$this->setCache($id, $obj);
 		return $obj;
 	}
@@ -193,6 +176,8 @@ class BaseMapper implements MapperInterface{
 		$schema = array_keys($this->schema()->columns());
 		foreach($schema as $column){
 			if(array_key_exists($column, $rowData)){
+				//$method = "set{$column}";
+				//$obj->{$method}($rowData[$column]);
 				$obj->{$column} = $rowData[$column];
 			}
 		}
@@ -222,8 +207,37 @@ class BaseMapper implements MapperInterface{
 	}
 
 	public function save($entity){
+		$primaryKey = $this->primaryKey();
+		if(!property_exists($entity, $primaryKey)){
+			throw new Exception("primarykey is not found");
+		}
+	
 		$query = $this->query();
-		$query->insert();
+	
+		if($entity->isNew()){
+			$query->insert()
+				->into()
+				->values($entity->getProperties());
+
+			$result = $query->execute();
+			if($result !== false){
+				$entity->{$primaryKey} = $query->lastInsertId();
+				$this->setCache($entity->{$primaryKey}, $entity);
+				return true;
+			}
+			return false;
+		}
+
+		$query->update()
+			->set($entity->getProperties())
+			->where(["$primaryKey =", $entity->{$primaryKey}]);
+
+		$result = $query->execute();
+		if($result !== false){
+			$this->setCache($entity->{$primaryKey}, $entity);
+			return true;
+		}
+		return false;
 	}
 
 

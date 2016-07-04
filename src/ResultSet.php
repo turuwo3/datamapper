@@ -60,6 +60,12 @@ class resultSet implements Iterator{
 		return $valid;
 	}
 	
+	public function first(){
+		foreach($this as $result){
+			return $result;
+		}
+	}
+
 	private function fetchResult(){
 		$row = $this->statement->fetch();
 		if($row === false){

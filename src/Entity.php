@@ -5,29 +5,72 @@ class Entity {
 	
 	protected $property = [];
 
+	protected $dirty = [];
+
 	public function __set($name, $value){
 		$setter = 'set' . $name;
-//print_r(['setter',$setter]);
-		if(method_exists($this, $setter)
-				&& property_exists($this, $name)){
+		if(method_exists($this, $setter)){
 			$this->{$setter}($value);
-			return $this;
+			$this->setDirty($name, $value);
+			return;
 		}
-		$this->property[$name] = $value;
-		return $this;
+		$this->set($name, $value);
+		return;
 	}
 
-	public function __get($name){
+	public function &__get($name){
+		$return = null;
 		$getter = 'get' . $name;
-//print_r(['getter',$getter]);
-		if(method_exists($this, $getter)
-				&& property_exists($this, $name)){
-			return $this->{$getter}($name);
+		if(method_exists($this, $getter)){
+			$return = $this->{$getter}($name);
+			return $return;
 		}
-		return $this->property[$name];
+		$return = $this->get($name);
+		return $return;
+	}
+	
+	public function __call($name, $arguments){
+		$method = substr($name, 0, 3);
+		if($method === 'set'){
+			$field = str_replace('set', '',$name);
+			$this->set($field, $arguments);
+		}else if($method === 'get'){
+			$field = str_replace('get', '',$name);
+			return $this->get($field);
+		}
 	}
 
-	public function debug(){
+	protected function set($name, $value){
+		$this->property[$name] = $value;
+		$this->setDirty($name, $value);
+	}
+
+	protected function get($name){
+		if(array_key_exists($name, $this->property)){
+			return $this->property[$name];
+		}
+		return null;
+	}
+
+	protected function setDirty($name, $value){
+		if(!($value instanceof Entity)){
+			$this->dirty[$name] = $value;
+		}
+	}
+
+	public function isDirty(){
+		return !empty($this->dirty);
+	}
+
+	public function clean(){
+		$this->dirty = [];
+	}
+
+	public function isNew(){
+		return empty($this->dirty);
+	}
+
+	public function getProperties(){
 		$defaultUseProperty = $this->property;
 		$userDefinedProperty = get_object_vars($this);
 		
