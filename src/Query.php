@@ -190,19 +190,21 @@ class Query extends DBQuery implements IteratorAggregate{
 		return $this->resultSet();
 	}
 
-	public function conversion($condition){
-		$field = key($condition);
-		$value = $condition[$field];
-		$aliasField = $this->mapper->aliasField($field);
-		
-		$conversion = [$aliasField => $value];
-		return $conversion;
+	public function select($fields = null){
+		if($fields === null){
+			$fields = $this->fields();
+		}
+		parent::select(implode(',', $fields));
+	
+		return $this;
 	}
 
-	public function selectMyTable(){
-		parent::select(implode(',', $this->fields()))
-			->from($this->table());
-	
+	public function from($tables = null){
+		if($tables === null){
+			$tables = $this->table();
+		}
+		parent::from($tables);
+
 		return $this;
 	}
 
@@ -210,13 +212,65 @@ class Query extends DBQuery implements IteratorAggregate{
 * @override
 */
 	public function find(){
-		$this->selectMyTable();
+		$this->select()
+			->from();
 
 		return $this;
 	}
 
+	public function insert($columns = null, $overwrite = false){
+		if($columns === null){
+			$columns = $this->fields();
+		}
+		parent::insert($columns, $overwrite);
+
+		return $this;
+	}
+
+	public function into($table = null){
+		if($table === null){
+			$table = $this->table();
+		}
+		parent::into($table);
+
+		return $this;
+	}
+
+	public function update($table = null){
+		if($table === null){
+			$table = $this->table();
+		}
+		parent::update($table);
+
+		return $this;
+	}
+	
+	public function set(array $values, $overwrite = false){
+		$fields = $this->fields();
+		$result = [];
+		foreach($values as $key => $value){
+			if(in_array($key, $fields, true)){
+				$result[$key] = $value;
+			}
+		}
+
+		parent::set($result, $overwrite);
+
+		return $this;
+	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

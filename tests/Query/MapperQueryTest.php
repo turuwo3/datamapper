@@ -64,6 +64,9 @@ class MockMapper implements MapperInterface {
 	public function createEntity($data){
 		return new User($data);
 	}
+	public function associations(){
+		return [];
+	}
 }
 
 class User extends Entity {
@@ -117,15 +120,21 @@ class MapperQueryTest extends PHPUnit_Framework_TestCase {
 		],$result->fetchAll());
 	}
 
-	public function testIterator(){
+	public function testInsert(){
 		$query = new Query(self::$mapper);
-		$query->find();
-//print_r($query);	
-		foreach($query as $row){
-			print_r([$row]);
-		}
-		
+		$query->insert('name')
+			->into()
+			->values(['name'=>'new']);
 
+		$this->assertInstanceOf('PDOStatement', $query->execute());
+	}
+
+	public function testUpdate(){
+		$query = new Query(self::$mapper);
+		$query->update()
+			->set(['name'=>'modify'])
+			->where(['id ='=>1]);
+		$this->assertInstanceOf('PDOStatement', $query->execute());
 	}
 
 

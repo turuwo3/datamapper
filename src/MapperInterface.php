@@ -4,6 +4,11 @@ namespace TRW\DataMapper;
 interface MapperInterface {
 
 /**
+* @return array
+*/
+	public function associations();
+
+/**
 * @return TRW\DataMapper\Driver
 */
 	public function connection($driver = null);

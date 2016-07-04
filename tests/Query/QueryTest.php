@@ -171,8 +171,8 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$query->insert('name')
 			->insert(['id','age'])
 			->into('users')
-			->values('new Row')
-			->values([4,20]);
+			->values(['name'=>'new Row'])
+			->values(['id'=>4,'age'=>20]);
 
 		$statement = $query->execute();
 			
@@ -198,9 +198,9 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$query->clear();
 		$query->insert(['id','name'])
 			->into('users')
-			->values([10,'new Row'])
+			->values(['id'=>10,'name'=>'new Row'])
 			->insert(['id','age'],true)
-			->values([5,100], true);
+			->values(['id'=>5,'age'=>100], true);
 
 		$statement = $query->execute();
 			

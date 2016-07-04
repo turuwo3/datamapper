@@ -120,14 +120,16 @@ class QueryCompiler {
 	private function buildInsertValues($query){
 		$parts = $query->getParts('insert');
 
+		$fields = $parts['columns'];
 		$values = $parts['values'];
 		$placeHolders = [];
-		foreach($values as $value){
-			$placeHolder = $query->placeHolder();
-			$query->bind($placeHolder, $value, gettype($value));
-			$placeHolders[] = $placeHolder;
+		foreach($values as $key => $value){
+			if(in_array($key, $fields, true)){
+				$placeHolder = $query->placeHolder();
+				$query->bind($placeHolder, $value, gettype($value));
+				$placeHolders[] = $placeHolder;
+			}
 		}
-		
 		$insert = implode(',', $placeHolders);
 		$sql = "VALUES ({$insert})";
 
