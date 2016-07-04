@@ -29,11 +29,13 @@ class BelongsToMany extends Association {
 		return new DBQuery($this->source()->connection());
 	}
 
-	private function getLinkStatement($sql){
+	private function getLinkStatement($targetIds){
+		$sourceKey = $this->sourceKey();
+		$where = [$sourceKey=>$targetIds];
 		$dbquery = $this->newDbQuery();
 		$dbquery->select(['*'])
 			->from($this->linkTable())
-			->where($sql);
+			->where($where);
 		$linkTableStatement = $dbquery->execute();
 		return $linkTableStatement;		
 	}
@@ -52,9 +54,9 @@ class BelongsToMany extends Association {
 		return $targetKey;
 	}
 
-	public function loadAssociation($sql){
+	public function loadAssociation($targetIds){
 		$linkTable = new BufferedStatement(
-			$this->getLinkStatement($sql));
+			$this->getLinkStatement($targetIds));
 		$targetKeys = [];
 		$targetKey = $this->targetKey();
 		$links = [];

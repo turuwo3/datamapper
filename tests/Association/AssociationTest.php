@@ -203,7 +203,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 			(1, 'foo profile', 1), (2, 'bar profile', 2)");
 	}
 
-/*
+
 	public function testBelongsToMany(){
 		$pm = MapperRegistry::get('PostsMapper');
 		$pm->belongsToMany('Tags');
@@ -211,34 +211,51 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$tm->belongsToMany('Posts');
 
 		$tags = $tm->find()
-			->eager(['Posts']);
+			->lazy(['Posts']);
 		$tagsToArray = $tags->resultSet()->toArray();
-		print_r($tagsToArray);
-	
-		$posts = $pm->find()
-			->lazy(['Tags']);
-		$postsToArray = $posts->resultSet()->toArray();
-		print_r($postsToArray);	
+		
+		$tag1 = $tagsToArray[0];
+		$this->assertEquals(1, $tag1->Posts[0]->id); 
+		
+		$tag2 = $tagsToArray[1];
+		$this->assertEquals(1, $tag2->Posts[0]->id); 
+		
+		$tag3 = $tagsToArray[2];
+		$this->assertEquals(2, $tag3->Posts[0]->id); 
 	}
-*/
+
+
 	public function testHasOne (){
 		$um = MapperRegistry::get('UsersMapper');
 		$um->hasOne('Profiles');
-		$pm = MapperRegistry::get('ProfilesMapper');
-		$pm->belongsTo('Users');
 
 		$users = $um->find()
 			->lazy(['Profiles']);
 		$usersToArray = $users->resultSet()->toArray();
-		print_r($usersToArray);
-
-		$profiles = $pm->find()
-			->lazy(['Users']);
-		$profilesToArray = $profiles->resultSet()->toArray();
-		print_r($profilesToArray);
+		
+		$user1 = $usersToArray[0];
+		$this->assertEquals(1, $user1->Profile->id);
+		
+		$user2 = $usersToArray[1];
+		$this->assertEquals(2, $user2->Profile->id);
 	}
 
-/*
+	public function testBelongsTo(){
+		$pm = MapperRegistry::get('ProfilesMapper');
+		$pm->belongsTo('Users');
+
+		$profs = $pm->find()
+			->eager(['Users']);
+		$profsToArray = $profs->resultSet()->toArray();
+		
+		$prof1 = $profsToArray[0];
+		$this->assertEquals(1, $prof1->Users->id);
+		
+		$prof2 = $profsToArray[1];
+		$this->assertEquals(2, $prof2->Users->id);
+	}
+
+
 	public function testEagerLoad(){
 		$gfmapper = MapperRegistry::get('GrandfathersMapper');
 		$gfmapper->hasMany('Parents');
@@ -412,7 +429,7 @@ $pmapper->hasOne('Parentprofiles');
 	//	print_r($toArray);
 	}
 
-*/
+
 	
 
 

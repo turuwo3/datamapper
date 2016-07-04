@@ -59,8 +59,8 @@ class EagerLoader {
 	}
 
 	private function loadAssociation($assoc, $statement){
-		$whereIn = $this->doLoad($assoc, $statement);
-		$resultMap = $assoc->loadAssociation($whereIn);
+		$targetIds = $this->targetIds($assoc, $statement);
+		$resultMap = $assoc->loadAssociation($targetIds);
 		$id = $assoc->source()->primaryKey();
 		$result = [];
 		foreach($resultMap as $foreignKey){
@@ -75,17 +75,17 @@ class EagerLoader {
 		return $finder->execute();
 	}
 
-	protected function doLoad($assoc, $statement){
+	protected function targetIds($assoc, $statement){
 		if(!$statement instanceof BufferedStatement){
 			$statement = new BufferedStatement($statement);
 		}
+		$targetids = [];
 		foreach($statement as $row){
 			$id = $assoc->source()->primaryKey();
-			$in[] = $row[$id];
+			$targetIds[] = $row[$id];
 		}
 	
-		$whereIn = [$assoc->foreignKey()=>$in];
-		return $whereIn;
+		return $targetIds;
 	}
 
 }

@@ -66,10 +66,6 @@ class resultSet implements Iterator{
 			return false;
 		}
 
-		$primaryKey = $this->mapper->primaryKey();
-		if($this->mapper->hasCache($row[$primaryKey])){
-			return $this->mapper->getCache($row[$primaryKey]);
-		}
 		$entity = $this->mapper->load($row);
 	
 		$assocs = $this->mapper->associations();

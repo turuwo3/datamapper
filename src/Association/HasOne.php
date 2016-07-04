@@ -16,7 +16,7 @@ class HasOne extends Association {
 			$entity = $this->load($assoc);
 			if(!$this->isEmpty($key)){
 				if(!$this->isContain($key, $entity)){
-					$this->RaddesultMap($key, $entity);
+					$this->addeRsultMap($key, $entity);
 				}
 			}else{
 				$this->addResultMap($key, $entity);
