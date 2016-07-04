@@ -226,12 +226,12 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$um->hasOne('Profiles');
 		$pm = MapperRegistry::get('ProfilesMapper');
 		$pm->belongsTo('Users');
-/*
+
 		$users = $um->find()
 			->lazy(['Profiles']);
 		$usersToArray = $users->resultSet()->toArray();
 		print_r($usersToArray);
-*/
+
 		$profiles = $pm->find()
 			->lazy(['Users']);
 		$profilesToArray = $profiles->resultSet()->toArray();

@@ -90,25 +90,6 @@ class Association {
 		$this->resultMap[$index][] = $entity;
 	}
 
-	public function loadAssociation($sql){
-		$finder = $this->find();
-		$finder->where($sql);
-		$foreignKey = $this->foreignKey();
-print_r([$sql]);
-		foreach($finder->execute() as $assoc){
-			$key = $assoc[$foreignKey];
-			$entity = $this->load($assoc);
-			if(!empty($this->resultMap[$key])){
-				if(!in_array($entity ,$this->resultMap[$key], true)){
-					$this->resultMap[$key][] = $entity;
-				}
-			}else{
-				$this->resultMap[$key][] = $entity;
-			}
-		}
-		return $this->resultMap;
-	}
-
 	public function load($rowData){
 		return $this->target()->load($rowData);
 	}

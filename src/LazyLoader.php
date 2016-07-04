@@ -40,8 +40,8 @@ class LazyLoader {
 			}
 				if(array_key_exists($table, $assocs)){
 					$assoc = $assocs[$table];
-					$doLoad = $this->doLoad($assoc, $entity);
-					$assoc->loadAssociation($doLoad);	
+					$findId = $this->findId($assoc, $entity);
+					$assoc->loadAssociation($findId);	
 				}
 					
 		}
@@ -81,14 +81,13 @@ class LazyLoader {
 	}
 
 	private function loadAssociation($assoc, $entity){
-		$doLoad = $this->doLoad($assoc, $entity);
-		return $assoc->loadAssociation($doLoad);
+		$findId = $this->findId($assoc, $entity);
+		return $assoc->loadAssociation($findId);
 	}
 
-	protected function doLoad($assoc, $entity){
+	protected function findId($assoc, $entity){
 		$id = $assoc->source()->primaryKey();
-		$foreignKey = $assoc->foreignKey();
-		$where = ["$foreignKey ="=>$entity->{$id}];
+		$where = [$entity->{$id}];
 		return $where;
 	}
 

@@ -221,7 +221,26 @@ class BaseMapper implements MapperInterface{
 		return new $name($data);
 	}
 
+	public function save($entity){
+		$query = $this->query();
+		$query->insert();
+	}
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
