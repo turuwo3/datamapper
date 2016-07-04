@@ -3,6 +3,8 @@ namespace TRW\DataMapper;
 
 class Entity {
 	
+	protected $id;
+
 	protected $property = [];
 
 	protected $dirty = [];
@@ -33,7 +35,8 @@ class Entity {
 		$method = substr($name, 0, 3);
 		if($method === 'set'){
 			$field = str_replace('set', '',$name);
-			$this->set($field, $arguments);
+			$argument = array_shift($arguments);
+			$this->set($field, $argument);
 		}else if($method === 'get'){
 			$field = str_replace('get', '',$name);
 			return $this->get($field);
@@ -41,6 +44,7 @@ class Entity {
 	}
 
 	protected function set($name, $value){
+		$name = lcfirst($name);
 		$this->property[$name] = $value;
 		$this->setDirty($name, $value);
 	}
@@ -52,10 +56,22 @@ class Entity {
 		return null;
 	}
 
+	public function setId($id){
+		$this->id = $id;
+	}
+
+	public function getId(){
+		return $this->id;
+	}
+
 	protected function setDirty($name, $value){
 		if(!($value instanceof Entity)){
 			$this->dirty[$name] = $value;
 		}
+	}
+
+	public function getDirty(){
+		return $this->dirty;
 	}
 
 	public function isDirty(){
@@ -67,7 +83,7 @@ class Entity {
 	}
 
 	public function isNew(){
-		return empty($this->dirty);
+		return empty($this->id);
 	}
 
 	public function getProperties(){

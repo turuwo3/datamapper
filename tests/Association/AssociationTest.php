@@ -124,11 +124,7 @@ class UsersMapper extends BaseMapper {
 	}
 }
 class User extends Entity {
-	public $id;
-	public $name;
-
 	private $Profiles;
-
 	public function setProfiles($profile){
 		$this->Profiles = $profile;
 	}
@@ -253,6 +249,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$profsToArray = $profs->resultSet()->toArray();
 		
 		$prof1 = $profsToArray[0];
+
 		$this->assertEquals(1, $prof1->Users->id);
 		
 		$prof2 = $profsToArray[1];
@@ -456,7 +453,7 @@ $pmapper->hasOne('Parentprofiles');
 			->resultSet()
 			->first();
 
-		$user->name = 'modified';
+		$user->setName('modified');
 		$this->assertTrue($um->save($user));
 		
 	}

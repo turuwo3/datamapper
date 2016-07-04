@@ -1,23 +1,20 @@
 <?php
 
-class Example {
-	private $name;
+class Super {
 
 	public function __get($name){
 		if(property_exists($this, $name)){
-			print_r(["I have {$name}"]);
+			print_r(["I have {$this->$name}"]);
 			return;
 		}
 		print_r(["I don't have {$name}"]);
 		return;
 	}
 }
-
-$e = new Example();
-
-$e->age;
-
-class Example2{
-	private $name;
+class Sub{
+	private $id;
 }
+
+$sub = new Sub();
+$sub->id;
 

@@ -176,9 +176,8 @@ class BaseMapper implements MapperInterface{
 		$schema = array_keys($this->schema()->columns());
 		foreach($schema as $column){
 			if(array_key_exists($column, $rowData)){
-				//$method = "set{$column}";
-				//$obj->{$method}($rowData[$column]);
-				$obj->{$column} = $rowData[$column];
+				$method = "set{$column}";
+				$obj->{$method}($rowData[$column]);
 			}
 		}
 	}
@@ -213,7 +212,6 @@ class BaseMapper implements MapperInterface{
 		}
 	
 		$query = $this->query();
-	
 		if($entity->isNew()){
 			$query->insert()
 				->into()
@@ -227,10 +225,9 @@ class BaseMapper implements MapperInterface{
 			}
 			return false;
 		}
-
 		$query->update()
-			->set($entity->getProperties())
-			->where(["$primaryKey =", $entity->{$primaryKey}]);
+			->set($entity->getDirty())
+			->where(["$primaryKey =" => $entity->getId()]);	
 
 		$result = $query->execute();
 		if($result !== false){
