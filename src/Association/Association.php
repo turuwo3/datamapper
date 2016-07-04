@@ -19,6 +19,7 @@ class Association {
 
 	public function __construct($source, $target, $conditions = []){
 		$this->source = $source;
+		$this->attachName($target);
 		$this->target = $target . 'Mapper';
 		$this->conditions = $conditions;
 	}
@@ -55,23 +56,44 @@ class Association {
 		return $this->target()->entityClass();
 	}
 
-	public function fetchResult($entity){
+	public function attachName($name = null){
+		if($name !== null){
+			$this->attachName = $name;
+		}
+		return $this->attachName;
+	}
+
+	public function attach($entity){
 		$id = $this->source()->primaryKey();
 		list($namespace, $assocType) = Inflector::namespaceSplit(get_class($this));
-		
+		$attachName = $this->attachName();
+	
 		if(empty($this->resultMap[$entity->{$id}])){
 			if($assocType === 'HasOne'
 					|| $assocType === 'BelongsTo'){
+				$entity->{$attachName} = null;
+			
 				return null;
+			}else{
+				$entity->{$attachName} = [];
+			
+				return [];
 			}
-			return [];
+		}else{
+			if($assocType === 'HasOne'
+					|| $assocType === 'BelongsTo'){
+				$result = array_shift($this->resultMap[$entity->{$id}]);
+				$entity->{$attachName} = $result;
+			
+				return $result;
+			}else{
+				$result = $this->resultMap[$entity->{$id}];
+				$entity->{$attachName} = $result;
+			
+				return $result;
+			}
 		}
-		if($assocType === 'HasOne'
-				|| $assocType === 'BelongsTo'){
-			$result = array_shift($this->resultMap[$entity->{$id}]);
-			return $result;
-		}
-		return $this->resultMap[$entity->{$id}];
+
 	}
 
 	public function resultMap(){

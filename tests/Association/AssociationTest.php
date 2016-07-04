@@ -17,7 +17,7 @@ class Grandfather extends Entity {
 	public function setParents($parents){
 		$this->Parents = $parents;
 	}
-	public function getParents(){
+	public function &getParents(){
 		return $this->Parents;
 	}
 }
@@ -126,7 +126,7 @@ class UsersMapper extends BaseMapper {
 class User extends Entity {
 	private $Profiles;
 	public function setProfiles($profile){
-		$this->Profile = $profile;
+		$this->Profiles = $profile;
 	}
 	public function &getProfiles(){
 		return $this->Profiles;
@@ -234,10 +234,10 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$usersToArray = $users->resultSet()->toArray();
 		
 		$user1 = $usersToArray[0];
-		$this->assertEquals(1, $user1->Profile->id);
+		$this->assertEquals(1, $user1->Profiles->id);
 		
 		$user2 = $usersToArray[1];
-		$this->assertEquals(2, $user2->Profile->id);
+		$this->assertEquals(2, $user2->Profiles->id);
 	}
 
 	public function testBelongsTo(){

@@ -87,8 +87,7 @@ class resultSet implements Iterator{
 		}else{
 			if(array_key_exists($table, $assocs)){
 				$assoc = $assocs[$table];
-				$attach = $assoc->fetchResult($entity);
-				$entity->{$table} = $attach;
+				$assoc->attach($entity);
 			}
 		}		
 	}
@@ -108,7 +107,7 @@ class resultSet implements Iterator{
 			if(is_array($dummy)){
 				$results = [];
 				foreach($dummy as $d){
-					$resultMap = $this->fetchAssoc($assoc, $d, $current);
+					$resultMap = $assoc->attach($d);
 					if($resultMap !== null){
 						foreach($resultMap as $value){
 							$results[] = $value;
@@ -117,19 +116,13 @@ class resultSet implements Iterator{
 				}	
 				$dummy = $results;
 			}else{
-				$dummy = $this->fetchAssoc($assoc, $dummy, $current);
+				$dummy = $assoc->attach($dummy);
 			}
 			
 			$mapper = $assoc->target();
 			$assocs = $mapper->associations();
 			$current = array_shift($chain);
 		}
-	}
-
-	private function fetchAssoc($assoc, $entity, $conjection){
-		$result = $assoc->fetchResult($entity);	
-		$entity->{$conjection} = $result;
-		return $result;
 	}
 
 	public function toArray(){
