@@ -10,8 +10,89 @@ use Exception;
 class BelongsToMany extends Association {
 
 	public function save($entity){
+		if(!$this->saveTarget($entity)){
+			return false;
+		}
+		if(!$this->deleteLinkTable($entity)){
+			return false;
+		}
+		if(!$this->saveLinkTable($entity)){
+			return false;
+		}
 		return true;
 	}
+
+	private function saveTarget($entity){
+		$assoc = $this->attachName();
+		$targetEntities = $entity->{"get{$assoc}"}();
+		if(empty($targetEntities)){
+			return true;
+		}
+		$targetMapper = $this->target();
+		foreach($targetEntities as $targetEntity){
+			if(!$targetMapper->save($targetEntity)){
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	private function deleteLinkTable($entity){
+		$assoc = $this->attachName();
+		$targetEntities = $entity->{"get{$assoc}"}();
+		if(empty($targetEntities)){
+			return true;
+		}
+		
+		$links = $this->getLinkStatement([$entity->getId()]);
+
+		$delete = [];
+		$sourceKey = $this->sourceKey();
+		foreach($links as $link){
+			$delete[] = $link[$sourceKey];
+		}
+		if(empty($delete)){
+			return true;
+		}
+		$linkTable = $this->linkTable();
+		$query = $this->newDBQuery();
+		$query->delete($linkTable)
+			->where([$sourceKey=>$delete]);
+		if($query->execute() === false){
+			return false;
+		}
+
+		return true;
+	}
+
+	private function saveLinkTable($entity){
+		$linkTable = $this->linkTable();
+		$sourceKey = $this->sourceKey();
+		$sourceId = $entity->getId();
+		$targetKey = $this->targetKey();
+		$assoc = $this->attachName();
+		$targetEntities = $entity->{"get{$assoc}"}();
+
+		if(empty($targetEntities)){
+			return true;
+		}
+
+		$query = $this->newDBQuery();
+		$query->insert([$sourceKey, $targetKey])
+			->into($linkTable);
+		foreach($targetEntities as $targetEntity){
+			$query->values([
+					$sourceKey => $sourceId,
+					$targetKey => $targetEntity->getId()
+				], true);
+			if(!$query->execute()){
+				return false;
+			}
+		}
+		return true;
+	}
+
 
 	public function isOwningSide($mapper){
 		return true;

@@ -26,9 +26,7 @@ class HasMany extends Association {
 	}
 
 	public function isOwningSide($mapper){
-		$sourceMapper = $this->source();
-		
-		return $mapper === $sourceMapper;
+		return $mapper === $this->source();
 	}
 
 	public function loadAssociation($targetIds){

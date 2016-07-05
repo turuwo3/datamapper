@@ -121,6 +121,23 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($profile->getUser_id(), $user->getId());
 	}
 
+	public function testBelongsToManySave(){
+		$pom = MapperRegistry::get('PostsMapper');
+		$pom->belongsToMany('Tags');
+		$post = $pom->find()
+			->eager(['Tags'])
+			->limit(1)
+			->resultSet()
+			->first();
+
+		$tam = MapperRegistry::get('TagsMapper');
+		$tam->belongsToMany('Posts');
+		$tag = $tam->newEntity(['name'=>'newTag']);
+		$tag->setPosts([$post]);
+//print_r($tag);
+		$this->assertTrue($tam->save($tag));
+		
+	}
 
 }
 
