@@ -2,6 +2,7 @@
 namespace TRW\DataMapper;
 
 use Iterator;
+use Exception;
 
 class resultSet implements Iterator{
 
@@ -74,7 +75,7 @@ class resultSet implements Iterator{
 
 		$entity = $this->mapper->load($row);
 	
-		$assocs = $this->mapper->associations();
+		$assocs = $this->mapper->associations()->toArray();
 		$contains = $this->query->getContain();
 		foreach($contains as $table => $option){
 			if($this->query->isLoadType('lazy')){
@@ -99,10 +100,10 @@ class resultSet implements Iterator{
 	}
 
 	private function attachChain($chain, $entity){
-		$assocs = $this->mapper->associations();
+		$assocs = $this->mapper->associations()->toArray();
 		$dummy = $entity;
 		$current = array_shift($chain);
-		
+
 		while($current !== null){
 			if(array_key_exists($current, $assocs)){
 				$assoc = $assocs[$current];
@@ -126,13 +127,12 @@ class resultSet implements Iterator{
 			}
 			
 			$mapper = $assoc->target();
-			$assocs = $mapper->associations();
+			$assocs = $mapper->associations()->toArray();
 			$current = array_shift($chain);
 		}
 	}
 
 	public function toArray(){
-		$iterator = $this;
 		return iterator_to_array($this);
 	}
 

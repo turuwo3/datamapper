@@ -16,8 +16,8 @@ class LazyLoader {
 		$this->query = $query;
 	}
 
-	private function associations(){
-		return $this->mapper->associations();
+	private function associations($mapper){
+		return $mapper->associations()->toArray();
 	}
 /**
 * $query->lazy = [
@@ -31,7 +31,7 @@ class LazyLoader {
 * ]
 */
 	public function load($entity){
-		$assocs = $this->associations();
+		$assocs = $this->associations($this->mapper);
 		$contains = $this->query->getContain();
 		foreach($contains as $table => $option){
 			if(strpos($table, '.') !== false){
@@ -48,7 +48,7 @@ class LazyLoader {
 	}
 
 	private function loadChain($chain, $entity){
-		$assocs = $this->associations();
+		$assocs = $this->associations($this->mapper);
 		$newEntity = $entity;
 		$current = array_shift($chain);
 		
@@ -75,7 +75,7 @@ class LazyLoader {
 				$current = $next;
 			}
 			$mapper = $assoc->target();
-			$assocs = $mapper->associations();
+			$assocs = $this->associations($mapper);
 			
 		}
 	}

@@ -15,15 +15,15 @@ class EagerLoader {
 		$this->query = $query;
 	}
 
-	private function associations(){
-		return $this->mapper->associations();
+	private function associations($mapper){
+		return $mapper->associations()->toArray();
 	}
 
 	public function load($statement){
 		if(!$statement instanceof BufferedStatement){
 			$statement = new BufferedStatement($statement);
 		}
-		$assocs = $this->associations();
+		$assocs = $this->associations($this->mapper);
 		$contains = $this->query->getContain();
 		foreach($contains as $table => $option){
 			if(strpos($table, '.')){
@@ -38,7 +38,7 @@ class EagerLoader {
 	}
 
 	private function loadChain($chain, $statement){
-		$assocs = $this->associations();
+		$assocs = $this->associations($this->mapper);
 		$newStatement = $statement;
 		$current = array_shift($chain);
 
@@ -53,7 +53,7 @@ class EagerLoader {
 
 			$current = array_shift($chain);
 			$mapper = $assoc->target();
-			$assocs = $mapper->associations();
+			$assocs = $this->associations($mapper);
 		}
 
 	}

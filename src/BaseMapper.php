@@ -4,6 +4,7 @@ namespace TRW\DataMapper;
 use TRW\DataMapper\Util\Inflector;
 use TRW\DataMapper\MapperInterface;
 use TRW\DataMapper\IdentityMap;
+use TRW\DataMapper\Association\AssociationCollection;
 use TRW\DataMapper\Association\HasOne;
 use TRW\DataMapper\Association\HasMany;
 use TRW\DataMapper\Association\BelongsTo;
@@ -31,7 +32,7 @@ class BaseMapper implements MapperInterface{
 
 	private $primaryKey = 'id';
 
-	private $associations = [];
+	private $associations;
 
 	public function __construct($driver){
 		$this->driver = $driver;
@@ -125,12 +126,18 @@ class BaseMapper implements MapperInterface{
 		return array_keys($this->schema()->columns());
 	}
 	
-	public function associations(){
+	public function associations($associationCollection = null){
+		if($associationCollection !== null){
+			$this->associations = $associationCollection;
+		}
+		if($this->associations === null){
+			$this->associations = new AssociationCollection();
+		}
 		return $this->associations;
 	}
 
 	public function addAssociation($targetClass, $assoc){
-		$this->associations[$targetClass] = $assoc;
+		$this->associations()->add($targetClass, $assoc);
 	}
 
 	public function hasOne($target, $condition = []){
@@ -207,9 +214,6 @@ class BaseMapper implements MapperInterface{
 
 	public function save($entity){
 		$primaryKey = $this->primaryKey();
-		if(!property_exists($entity, $primaryKey)){
-			throw new Exception("primarykey is not found");
-		}
 	
 		$query = $this->query();
 		if($entity->isNew()){
@@ -225,6 +229,7 @@ class BaseMapper implements MapperInterface{
 			}
 			return false;
 		}
+
 		$query->update()
 			->set($entity->getDirty())
 			->where(["$primaryKey =" => $entity->getId()]);	
@@ -236,7 +241,6 @@ class BaseMapper implements MapperInterface{
 		}
 		return false;
 	}
-
 
 
 }
