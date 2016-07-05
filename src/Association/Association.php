@@ -67,28 +67,28 @@ class Association {
 		$id = $this->source()->primaryKey();
 		list($namespace, $assocType) = Inflector::namespaceSplit(get_class($this));
 		$attachName = $this->attachName();
-	
-		if(empty($this->resultMap[$entity->{$id}])){
+		$attachName = "set{$attachName}";
+		if(empty($this->resultMap[$entity->getId()])){
 			if($assocType === 'HasOne'
 					|| $assocType === 'BelongsTo'){
-				$entity->{$attachName} = null;
+				$entity->{$attachName}(null);
 			
 				return null;
 			}else{
-				$entity->{$attachName} = [];
+				$entity->{$attachName}([]);
 			
 				return [];
 			}
 		}else{
 			if($assocType === 'HasOne'
 					|| $assocType === 'BelongsTo'){
-				$result = array_shift($this->resultMap[$entity->{$id}]);
-				$entity->{$attachName} = $result;
+				$result = array_shift($this->resultMap[$entity->getId()]);
+				$entity->{$attachName}($result);
 			
 				return $result;
 			}else{
-				$result = $this->resultMap[$entity->{$id}];
-				$entity->{$attachName} = $result;
+				$result = $this->resultMap[$entity->getId()];
+				$entity->{$attachName}($result);
 			
 				return $result;
 			}
