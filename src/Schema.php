@@ -102,7 +102,8 @@ class Schema {
 */
 	public function schema(){
 		if(empty($this->schema)){
-			 $this->schema = $this->driver->query("SHOW COLUMNS FROM {$this->table}");
+			 $schema = $this->driver->query("SHOW COLUMNS FROM {$this->table}");
+			 $this->schema = $schema->fetchAll();
 		}
 		return $this->schema;
 	}
@@ -124,7 +125,7 @@ class Schema {
 						throw new Exception('missing table from ' . $this->table);
 				}
 			}
-			
+			$result = [];			
 			foreach($this->schema as $row){
 				$type = $row['Type'];
 				$field = $row['Field'];

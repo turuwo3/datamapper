@@ -231,6 +231,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 
 		$users = $um->find()
 			->lazy(['Profiles']);
+
 		$usersToArray = $users->resultSet()->toArray();
 		
 		$user1 = $usersToArray[0];
@@ -238,6 +239,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		
 		$user2 = $usersToArray[1];
 		$this->assertEquals(2, $user2->Profiles->id);
+
 	}
 
 	public function testBelongsTo(){
@@ -442,7 +444,6 @@ $pmapper->hasOne('Parentprofiles');
 			->orderDesc('id')
 			->resultSet()
 			->first();
-
 		$this->assertSame($user2, $user);
 	}
 
@@ -453,9 +454,7 @@ $pmapper->hasOne('Parentprofiles');
 			->resultSet()
 			->first();
 
-		$user->setName('modified');
-		$this->assertTrue($um->save($user));
-		
+		$this->assertTrue($um->save($user));		
 	}
 
 

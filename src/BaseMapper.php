@@ -131,7 +131,7 @@ class BaseMapper implements MapperInterface{
 			$this->associations = $associationCollection;
 		}
 		if($this->associations === null){
-			$this->associations = new AssociationCollection();
+			$this->associations = new AssociationCollection($this);
 		}
 		return $this->associations;
 	}
@@ -212,36 +212,63 @@ class BaseMapper implements MapperInterface{
 		return new $name($data);
 	}
 
-	public function save($entity){
-		$primaryKey = $this->primaryKey();
-	
-		$query = $this->query();
-		if($entity->isNew()){
-			$query->insert()
-				->into()
-				->values($entity->getProperties());
+	public function newEntity($data = []){
+		$default = $this->schema()->defaults();
+		$mergeData = array_merge($default, $data);
+		$entity = $this->createEntity();
+		$this->doLoad($entity, $mergeData);
+		$entity->clean();
+		return $entity;
+	}
 
-			$result = $query->execute();
-			if($result !== false){
-				$entity->{$primaryKey} = $query->lastInsertId();
-				$this->setCache($entity->{$primaryKey}, $entity);
-				return true;
+	public function save($entity){
+		$saved = $this->associations()->saveParents($this, $entity);
+
+		if($saved){
+			$query = $this->query();
+			if($entity->isNew()){
+				$saved = $this->insert($entity, $query);
+			}else{
+				$saved = $this->update($entity, $query);
 			}
-			return false;
 		}
 
-		$query->update()
-			->set($entity->getDirty())
-			->where(["$primaryKey =" => $entity->getId()]);	
+		if($saved){
+			$saved = $this->associations()->saveChilds($this, $entity);
+		}
+
+		return $saved;
+	}
+
+	private function insert($entity, $query){
+		$query->insert()
+			->into()
+			->values($entity->getProperties());
 
 		$result = $query->execute();
 		if($result !== false){
-			$this->setCache($entity->{$primaryKey}, $entity);
+			$entity->setId($query->lastInsertId());
+			$this->setCache($entity->getId(), $entity);
 			return true;
 		}
 		return false;
 	}
 
+	private function update($entity, $query){
+		if(!$entity->isDirty()){
+			return true;
+		}
+		$primaryKey = $this->primaryKey();
+		$query->update()
+			->set($entity->getDirty())
+			->where(["$primaryKey =" => $entity->getId()]);	
+		$result = $query->execute();
+		if($result !== false){
+			$this->setCache($entity->getId(), $entity);
+			return true;
+		}
+		return false;
+	}
 
 }
 

@@ -34,4 +34,17 @@ class MapperRegistry {
 		return self::register()->get($name);
 	}
 
+	public function clean(){
+		self::register()->clean();
+	}
+	
 }
+
+
+
+
+
+
+
+
+

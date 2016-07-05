@@ -50,6 +50,7 @@ class Entity {
 	}
 
 	protected function get($name){
+		$name = lcfirst($name);
 		if(array_key_exists($name, $this->property)){
 			return $this->property[$name];
 		}
@@ -58,6 +59,7 @@ class Entity {
 
 	public function setId($id){
 		$this->id = $id;
+		$this->setDirty('id', $id);
 	}
 
 	public function getId(){

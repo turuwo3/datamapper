@@ -9,6 +9,14 @@ use Exception;
 
 class BelongsToMany extends Association {
 
+	public function save($entity){
+		return true;
+	}
+
+	public function isOwningSide($mapper){
+		return true;
+	}
+
 	private function linkTable(){
 		$sourceTable = $this->source()->tableName();
 		$targetTable = $this->target()->tableName();

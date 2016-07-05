@@ -5,6 +5,10 @@ class AssociationCollection {
 
 	private $associations = [];
 
+	public function __construct($mapper){
+		$this->source = $mapper;
+	}
+
 	public function add($target, $assoc){
 		$this->associations[$target] = $assoc;
 	}
@@ -14,6 +18,27 @@ class AssociationCollection {
 			return false;
 		}
 		return $this->associations[$target];
+	}
+
+	private function saveAssociations($mapper, $entity, $owningSide){
+		$associations = $this->associations;
+		foreach($associations as $assoc){
+			if($assoc->isOwningSide($mapper) !== $owningSide){
+				continue;
+			}
+			if(!$assoc->save($entity)){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public function saveParents($mapper, $entity){
+		return $this->saveAssociations($mapper, $entity, false);
+	}
+
+	public function saveChilds($mapper, $entity){
+		return $this->saveAssociations($mapper, $entity, true);
 	}
 
 	public function toArray(){

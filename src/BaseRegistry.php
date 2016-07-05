@@ -45,6 +45,9 @@ class BaseRegistry implements RegistryInterface {
 		return $this->mappers[$name];
 	}
 
+	public function clean(){
+		$this->mappers = [];
+	}
 
 }
 
