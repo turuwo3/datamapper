@@ -262,6 +262,7 @@ class BaseMapper implements MapperInterface{
 		$query->update()
 			->set($entity->getDirty())
 			->where(["$primaryKey =" => $entity->getId()]);	
+print_r($entity->getDirty());
 		$result = $query->execute();
 		if($result !== false){
 			$this->setCache($entity->getId(), $entity);

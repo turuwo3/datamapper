@@ -67,8 +67,18 @@ class Entity {
 	}
 
 	protected function setDirty($name, $value){
-		if(!($value instanceof Entity)){
-			$this->dirty[$name] = $value;
+		if(is_array($value)){
+			if(!empty($value)){
+				if(!($value[0] instanceof Entity)){
+					$this->dirty[$name] = $value;
+					return;
+				}
+			}
+		}else{
+			if(!($value instanceof Entity)){
+				$this->dirty[$name] = $value;
+				return;
+			}
 		}
 	}
 
