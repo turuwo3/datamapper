@@ -8,10 +8,9 @@ class HasMany extends Association {
 	public function save($entity){
 		$targetName = $this->attachName();
 		$targetEntities = $entity->{"get{$targetName}"}();
-		if(empty($targetEntity)){
+		if(empty($targetEntities)){
 			return true;
 		}
-	
 		$foreignId = $entity->getId();
 		$foreignKey =  $this->foreignKey();
 		
