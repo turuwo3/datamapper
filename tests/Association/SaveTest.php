@@ -91,7 +91,7 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 		$pm = MapperRegistry::get('ProfilesMapper');
 		$pm->belongsTo('Users');
 		$profile = $pm->newEntity();
-		$user->setProfiles($profile);
+		$user->setProfile($profile);
 
 		$this->assertTrue($um->save($user));
 		
@@ -118,7 +118,7 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 			->first();
 
 		$profile = $pm->newEntity();
-		$profile->setUsers($user);
+		$profile->setUser($user);
 
 		$this->assertTrue($pm->save($profile));
 		$this->assertEquals($profile->getUser_id(), $user->getId());
