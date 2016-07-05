@@ -17,6 +17,8 @@ class Association {
 
 	private $resultMap = [];
 
+	private $assocType;
+
 	public function __construct($source, $target, $conditions = []){
 		$this->source = $source;
 		$this->attachName($target);
@@ -43,7 +45,7 @@ class Association {
 	public function foreignKey(){
 		if($this->foreignKey === null){
 			$this->foreignKey =
-				substr($this->source->tableName(), 0, -1) . '_id';
+				Inflector::singular($this->source->tableName()) . '_id';
 		}
 		return $this->foreignKey;
 	}
@@ -58,9 +60,24 @@ class Association {
 
 	public function attachName($name = null){
 		if($name !== null){
-			$this->attachName = $name;
+			if($this->assocType() === 'HasOne' 
+					|| $this->assocType() === 'BelongsTo'){
+				$singular = Inflector::singular($name);
+				$this->attachName = $singular;
+			}else{
+				$this->attachName = $name;
+			}
 		}
+
 		return $this->attachName;
+	}
+
+	public function assocType(){
+		if($this->assocType === null){
+			list($namespace, $assocType) = Inflector::namespaceSplit(get_class($this));
+			$this->assocType = $assocType;
+		}
+		return $this->assocType;
 	}
 
 	public function attach($entity){

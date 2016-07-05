@@ -124,12 +124,12 @@ class UsersMapper extends BaseMapper {
 	}
 }
 class User extends Entity {
-	private $Profiles;
-	public function setProfiles($profile){
-		$this->Profiles = $profile;
+	private $profiles;
+	public function setProfile($profile){
+		$this->profiles = $profile;
 	}
-	public function getProfiles(){
-		return $this->Profiles;
+	public function getProfile(){
+		return $this->profiles;
 	}
 }
 class ProfilesMapper extends BaseMapper {
@@ -138,12 +138,12 @@ class ProfilesMapper extends BaseMapper {
 	}
 }
 class Profile extends Entity{
-	private $Users;
-	public function setUsers($user){
-		$this->Users = $user;
+	private $user;
+	public function setUser($user){
+		$this->user = $user;
 	}
-	public function getUsers(){
-		return $this->Users;
+	public function getUser(){
+		return $this->user;
 	}
 }
 
@@ -235,10 +235,10 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$usersToArray = $users->resultSet()->toArray();
 		
 		$user1 = $usersToArray[0];
-		$this->assertEquals(1, $user1->Profiles->id);
+		$this->assertEquals(1, $user1->Profile->id);
 		
 		$user2 = $usersToArray[1];
-		$this->assertEquals(2, $user2->Profiles->id);
+		$this->assertEquals(2, $user2->Profile->id);
 
 	}
 
@@ -252,10 +252,10 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		
 		$prof1 = $profsToArray[0];
 
-		$this->assertEquals(1, $prof1->Users->id);
+		$this->assertEquals(1, $prof1->User->id);
 		
 		$prof2 = $profsToArray[1];
-		$this->assertEquals(2, $prof2->Users->id);
+		$this->assertEquals(2, $prof2->User->id);
 	}
 
 
@@ -287,7 +287,7 @@ $pmapper->hasOne('Parentprofiles');
 			$this->assertEquals(1, $parent1->id);
 			$this->assertEquals(1, $parent1->grandfather_id);
 
-			$profile1 = $parent1->Parentprofiles;
+			$profile1 = $parent1->Parentprofile;
 			$this->assertEquals(1, $profile1->id);
 			$this->assertEquals(1, $profile1->parent_id);
 	
@@ -334,7 +334,7 @@ $pmapper->hasOne('Parentprofiles');
 			$this->assertEquals(2, $parent2->id);
 			$this->assertEquals(2, $parent2->grandfather_id);
 
-			$profile2 = $parent2->Parentprofiles;
+			$profile2 = $parent2->Parentprofile;
 			$this->assertEquals(2, $profile2->id);
 			$this->assertEquals(2, $profile2->parent_id);
 
@@ -342,7 +342,7 @@ $pmapper->hasOne('Parentprofiles');
 				$this->assertEquals(3, $child3->id);
 				$this->assertEquals(2, $child3->parent_id);
 
-	//	print_r($toArray);
+		//print_r($toArray);
 	}
 
 
@@ -374,7 +374,7 @@ $pmapper->hasOne('Parentprofiles');
 			$this->assertEquals(1, $parent1->id);
 			$this->assertEquals(1, $parent1->grandfather_id);
 
-			$profile1 = $parent1->Parentprofiles;
+			$profile1 = $parent1->Parentprofile;
 			$this->assertEquals(1, $profile1->id);
 			$this->assertEquals(1, $profile1->parent_id);
 	
@@ -421,7 +421,7 @@ $pmapper->hasOne('Parentprofiles');
 			$this->assertEquals(2, $parent2->id);
 			$this->assertEquals(2, $parent2->grandfather_id);
 
-			$profile2 = $parent2->Parentprofiles;
+			$profile2 = $parent2->Parentprofile;
 			$this->assertEquals(2, $profile2->id);
 			$this->assertEquals(2, $profile2->parent_id);
 
