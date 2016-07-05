@@ -74,6 +74,9 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 		$d->query("DELETE FROM profiles");
 		$d->query("INSERT INTO profiles (id, body, user_id) VALUES
 			(1, 'foo profile', 1), (2, 'bar profile', 2)");
+		$d->query("DELETE FROM comments");
+		$d->query("INSERT INTO comments (id, body, user_id) VALUES
+(1, 'foo comment1', 1), (2, 'foo comment2', 1), (3, 'bar comment1', 2)");
 	}
 
 
@@ -134,9 +137,22 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 		$tam->belongsToMany('Posts');
 		$tag = $tam->newEntity(['name'=>'newTag']);
 		$tag->setPosts([$post]);
-//print_r($tag);
+
 		$this->assertTrue($tam->save($tag));
 		
+	}
+
+	public function testHasManySave(){
+		$um = MapperRegistry::get('UsersMapper');
+		$um->hasMany('Comments');
+		$user = $um->find()
+			->eager(['Comments'])
+			->resultSet()
+			->first();
+		$comment1 = $user->getComments()[0];
+		$comment1->setBody('modifieeee');
+		
+		$um->save($user);
 	}
 
 }
