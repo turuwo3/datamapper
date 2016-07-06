@@ -112,18 +112,11 @@ class QueryExpression implements ExpressionComponent {
 		$in = "IN ({$implode})";
 		$conjuction = $component->conjuction;
 				
-				if($conjuction === ''){
-					$result .= "({$key} {$in}";
-				}else{
-					$result .= " {$conjuction} ({$kKey} {$in}";
-				}
-/*
-		if($conjuction !== '' && $component->isParent){
-			$result .= " {$conjuction} ({$key} {$in}";
+		if($conjuction === ''){
+			$result .= "({$key} {$in}";
 		}else{
-			$result .= " {$conjuction} {$key} {$in}";
+			$result .= " {$conjuction} ({$kKey} {$in}";
 		}
-*/
 	}
 
 	private $counter = 0;

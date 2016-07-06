@@ -1,6 +1,4 @@
 <?php
-namespace App\Model;
-
 require '../../vendor/autoload.php';
 
 use TRW\DataMapper\BaseMapper;
@@ -8,6 +6,9 @@ use TRW\DataMapper\Database\Driver\MySql;
 use TRW\DataMapper\Entity;
 
 class UsersMapper extends BaseMapper {
+	public function entityClass($name = null){
+		return 'User';
+	}
 }
 
 class User extends Entity {
@@ -35,9 +36,10 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		$mapper = new UsersMapper(self::$driver);
 		$entity = new Entity;
 		$data = [
+			'id'=>1,
 			'name' => 'test'
 		];
-		$mapper->load($entity, $data);
+		$mapper->load($data);
 
 		$this->assertInstanceOf('TRW\DataMapper\Entity', $entity);
 	}
@@ -45,11 +47,14 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 	public function testFind(){
 		$mapper = new UsersMapper(self::$driver);
 
-		$query = $mapper->find();
+		$arr = $mapper->find()
+			->resultSet()
+			->toArray();
 
-		foreach($query as $user){
-			print_r($user);
-		}
+		$this->assertEquals(3, count($arr));
+		$this->assertEquals(1, $arr[0]->getId());
+		$this->assertEquals(2, $arr[1]->getId());
+		$this->assertEquals(3, $arr[2]->getId());
 		
 	}
 

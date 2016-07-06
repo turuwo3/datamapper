@@ -5,6 +5,7 @@ use TRW\DataMapper\Database\Driver\MySql;
 use TRW\DataMapper\MapperInterface;
 use TRW\DataMapper\Query;
 use TRW\DataMapper\IdentityMap;
+use TRW\DataMapper\Association\AssociationCollection;
 use TRW\DataMapper\Entity;
 
 class MockMapper implements MapperInterface {
@@ -76,7 +77,7 @@ class MockMapper implements MapperInterface {
 		return new User($data);
 	}
 	public function associations(){
-		return [];
+		return new AssociationCollection();
 	}
 }
 

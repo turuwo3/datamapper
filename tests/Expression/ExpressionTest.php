@@ -1,29 +1,30 @@
 <?php
 require '../../vendor/autoload.php';
 
-use TRW\DataMapper\Expression\WhereExpression;
+use TRW\DataMapper\Expression\QueryExpression;
+use TRW\DataMapper\ValueBinder;
 
 class ExpressionTest extends PHPUnit_Framework_TestCase {
 
 	public function testSetAndGet(){
+		$binder = new ValueBinder();
 
-		$or = new WhereExpression('OR', ['age ='=>12]);
+		$or = new QueryExpression('OR', ['age ='=>12]);
 	
-		$and = new WhereExpression('AND', ['id ='=>1]);
-		$and->addExpression($or);
+		$and = new QueryExpression('AND', ['id ='=>1]);
+		$and->add($or);
 
-		$or2 = new WhereExpression('OR', ['email ='=>'XXX@XXXX.com']);
-		$or3 = new WhereExpression('OR', ['sex ='=>1]);
-		$or2->addExpression($or3);
+		$or2 = new QueryExpression('OR', ['email ='=>'XXX@XXXX.com']);
+		$or3 = new QueryExpression('OR', ['sex ='=>1]);
+		$or2->add($or3);
 		
-		$and->addExpression($or2);
+		$and->add($or2);
 
-		$not = new WhereExpression('NOT', ['id <'=>1]);
-		$not->addExpression($and);
+		$not = new QueryExpression('NOT', ['id <'=>1]);
+		$and->add($not);
 		
-//NOT id < 1 AND id = 1 OR age = 12 OR email = XXX@XXXX.com OR sex = 1
 
-		$sql = $not->getExpressions();
+		$sql = $and->sql($binder);
 
 		print_r([$sql]);
 	}

@@ -1,6 +1,4 @@
 <?php
-namespace App\Model;
-
 require '../../vendor/autoload.php';
 
 use TRW\DataMapper\BaseMapper;
@@ -9,6 +7,9 @@ use TRW\DataMapper\Entity;
 use TRW\DataMapper\Query;
 
 class UsersMapper extends BaseMapper{
+	public function entityClass($name = null){
+		return 'User';
+	}
 }
 
 class User extends Entity {
@@ -36,15 +37,18 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 	public function testForeach(){
 		$query = new Query(new UsersMapper(self::$driver));
 		
-		$query->selectMyTable();		
-		//print_r($query->execute());
-		foreach($query as $user){
-			print_r($user);
+		$resultSet = $query->select()
+			->from()
+			->resultSet();
+		
+		$arr = [];
+		foreach($resultSet as $user){
+			$arr[] = $user;
 		}
 
-		foreach($query as $user){
-			print_r($user);
-		}
+		$this->assertEquals(1, $arr[0]->getId());
+		$this->assertEquals(2, $arr[1]->getId());
+		$this->assertEquals(3, $arr[2]->getId());
 	}
 
 

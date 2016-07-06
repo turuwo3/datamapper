@@ -218,7 +218,7 @@ class QueryBuilder {
 		return $this;
 	}
 
-	public function notWhere($condition, callable $conuction = null, $overwrite = false){
+	public function notWhere($condition, callable $conjuction = null, $overwrite = false){
 		$this->conjugate('NOT', $condition, $conjuction,$overwrite);
 		
 		return $this;

@@ -29,15 +29,13 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 
 	public function testWhere(){
 		$query = new Query(self::$driver);
-/*
+
 		$query->select('name')
 			->from('users')
-			->where(['id ='=>1])
-			->orWhere(['name ='=>'bar'])
-			->notWhere(['age ='=>20]);
+			->where(['age ='=>20]);
 
 		print_r([$query->sql()]);
-*/
+
 	}
 	
 	public function testWhere2(){
@@ -50,7 +48,27 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 				$exp->add($new);
 				return $exp;
 			});
+		
+		$this->assertEquals(
+			'SELECT name FROM users WHERE (id = :c0 OR name = :c1)'
+			,$query->sql());
+	}
+	
+	public function testWhere3(){
+		$query = new Query(self::$driver);
 
+		$query->select('name')
+			->from('users')
+			->where(['id ='=>1], function ($exp){
+				$or = $exp->orX(['name ='=>'100']);
+				$exp->add($or);
+				$not = $exp->notX(['age ='=>20]);
+				$exp->add($not);
+				return $exp;
+			});
+		$this->assertEquals(
+'SELECT name FROM users WHERE (id = :c0 OR name = :c1 AND NOT (age = :c2))'
+			,$query->sql());
 	}
 		
 
@@ -60,7 +78,10 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 		$query->select('name')
 			->from('users')
 			->where(['id '=>[1,2,3]]);
-print_r([$query->sql()]);
+		
+		$this->assertEquals(
+			'SELECT name FROM users WHERE (id  IN (:c0,:c1,:c2))'
+			,$query->sql());
 	}
 
 
