@@ -77,7 +77,7 @@ class MockMapper implements MapperInterface {
 		return new User($data);
 	}
 	public function associations(){
-		return new AssociationCollection();
+		return new AssociationCollection($this);
 	}
 }
 

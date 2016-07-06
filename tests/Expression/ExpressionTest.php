@@ -10,21 +10,10 @@ class ExpressionTest extends PHPUnit_Framework_TestCase {
 		$binder = new ValueBinder();
 
 		$or = new QueryExpression('OR', ['age ='=>12]);
-	
 		$and = new QueryExpression('AND', ['id ='=>1]);
-		$and->add($or);
+		$or->add($and);
 
-		$or2 = new QueryExpression('OR', ['email ='=>'XXX@XXXX.com']);
-		$or3 = new QueryExpression('OR', ['sex ='=>1]);
-		$or2->add($or3);
-		
-		$and->add($or2);
-
-		$not = new QueryExpression('NOT', ['id <'=>1]);
-		$and->add($not);
-		
-
-		$sql = $and->sql($binder);
+		$sql = $or->sql($binder);
 
 		print_r([$sql]);
 	}
