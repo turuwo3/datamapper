@@ -207,19 +207,28 @@ class QueryBuilder {
 	}
 
 	public function andWhere($condition, callable $conjuction = null, $overwrite = false){
+		if(empty($this->parts['where'])){
+			throw new Exception('you can not run before the $Query::where method');
+		}
 		$this->conjugate('AND', $condition, $conjuction, $overwrite);
 			
 		return $this;
 	}
 
 	public function orWhere($condition, callable $conjuction = null,$overwrite = false){
+		if(empty($this->parts['where'])){
+			throw new Exception('you can not run before the $Query::where method');
+		}
 		$this->conjugate('OR', $condition, $conjuction, $overwrite);
 		
 		return $this;
 	}
 
 	public function notWhere($condition, callable $conjuction = null, $overwrite = false){
-		$this->conjugate('NOT', $condition, $conjuction,$overwrite);
+		if(empty($this->parts['where'])){
+			throw new Exception('you can not run before the $Query::where method');
+		}
+		$this->conjugate('AND NOT', $condition, $conjuction,$overwrite);
 		
 		return $this;
 	}

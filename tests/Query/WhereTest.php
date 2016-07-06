@@ -32,9 +32,13 @@ class WhereTest extends PHPUnit_Framework_TestCase {
 
 		$query->select('name')
 			->from('users')
-			->where(['age ='=>20]);
+			->where(['age ='=>20])
+			->orWhere(['name ='=>'foo'])
+			->notWhere(['sex ='=>1]);
 
-		print_r([$query->sql()]);
+		$this->assertEquals(
+		'SELECT name FROM users WHERE (age = :c0 OR (name = :c1) AND NOT (sex = :c2))'
+		,$query->sql());
 
 	}
 	

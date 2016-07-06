@@ -11,6 +11,7 @@ class StatementTest extends PHPUnit_Framework_TestCase {
 		$condig = require '../config.php';
 		$c = $condig['MySql'];
 		self::$driver = new PDO($c['dns'], $c['user'], $c['password']);
+		self::$driver->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 	}
 
 	public function setUp(){
@@ -25,11 +26,11 @@ class StatementTest extends PHPUnit_Framework_TestCase {
 		$statement = self::$driver->query("SELECT id,name FROM users");
 		$buffere = new BufferedStatement($statement);
 		while($row = $buffere->fetch()){
-			print_r($row);
 		}
-		while($row = $buffere->fetch()){
-			print_r($row);
-		}
+		
+		$result = $buffere->fetchAll();
+
+		$this->assertEquals(2, count($result));
 	}
 
 

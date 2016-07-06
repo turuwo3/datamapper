@@ -28,7 +28,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 	public function setUp(){
 		$d = self::$driver;
 		
-		$d->query("DLETE FROM users");
+		$d->query("DELETE FROM users");
 		$d->query("INSERT INTO users (id, name) VALUES
 			(1, 'foo'), (2, 'bar'), (3, 'hoge')");
 	}
@@ -45,7 +45,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 		foreach($resultSet as $user){
 			$arr[] = $user;
 		}
-
+		
 		$this->assertEquals(1, $arr[0]->getId());
 		$this->assertEquals(2, $arr[1]->getId());
 		$this->assertEquals(3, $arr[2]->getId());
