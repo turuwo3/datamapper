@@ -13,6 +13,12 @@ class Association {
 
 	private $foreignKey;
 
+	private static $defaultOptions = [
+		'dependent' => true,
+	];
+
+	private $options = [];
+
 	private static $defaultConditions = [
 		'where' => null,
 		'order' => null,
@@ -26,11 +32,12 @@ class Association {
 
 	private $assocType;
 
-	public function __construct($source, $target, $conditions = []){
+	public function __construct($source, $target, $conditions = [], $options = []){
 		$this->source = $source;
 		$this->attachName($target);
 		$this->target = $target . 'Mapper';
 		$this->conditions($conditions);
+		$this->options($options);
 	}
 
 	public function source(){
@@ -62,8 +69,15 @@ class Association {
 			$merged = array_merge(self::$defaultConditions, $conditions);
 			$this->conditions = $merged;
 		}
-	
 		return $this->conditions;
+	}
+
+	public function options($options = null){
+		if($options !== null){
+			$merged = array_merge(self::$defaultOptions, $options);
+			$this->options = $merged;
+		}
+		return $this->options;
 	}
 
 	protected function mergeConditions($query){

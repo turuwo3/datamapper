@@ -96,7 +96,7 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
 			->lazy(['Tags'])
 			->resultSet()
 			->toArray();
-print_r($posts);
+		
 		$this->assertEquals(1, count($posts));
 	}
 
@@ -120,6 +120,31 @@ print_r($posts);
 		
 		$this->assertEquals(1, count($tags));
 	}
+	
+
+	public function testBelongsToManyDependentFalse(){
+		$pm = MapperRegistry::get('PostsMapper');
+		$pm->belongsToMany('Tags', function ($assoc){
+				$assoc->options(['dependent'=>false]);
+			});
+		$posts = $pm->find()
+			->eager(['Tags'])
+			->resultSet()
+			->toArray();
+		$post = $posts[0];
+		
+		$this->assertTrue($pm->delete($post));
+
+		$tm = MapperRegistry::get('TagsMapper');
+		$tm->belongsToMany('Posts');
+		$tags = $tm->find()
+			->lazy(['Posts'])
+			->resultSet()
+			->toArray();
+		
+		$this->assertEquals(1, count($tags));
+	}
+
 
 	public function testHasOneDelete(){
 		$um = MapperRegistry::get('UsersMapper');
@@ -180,54 +205,6 @@ print_r($posts);
 		$this->assertEquals(1, count($comments));
 	}
 
-	public function testBelongsToSave(){
-		$pm = MapperRegistry::get('ProfilesMapper');
-		$pm->belongsTo('Users');
-		$um = MapperRegistry::get('UsersMapper');
-
-		 $user = $um->find()
-		 	->eager(['Profiles'])
-			->limit(1)
-			->resultSet()
-			->first();
-
-		$profile = $pm->newEntity();
-		$profile->setUser($user);
-
-		$this->assertTrue($pm->save($profile));
-		$this->assertEquals($profile->getUser_id(), $user->getId());
-	}
-
-	public function testBelongsToManySave(){
-		$pom = MapperRegistry::get('PostsMapper');
-		$pom->belongsToMany('Tags');
-		$post = $pom->find()
-			->eager(['Tags'])
-			->limit(1)
-			->resultSet()
-			->first();
-
-		$tam = MapperRegistry::get('TagsMapper');
-		$tam->belongsToMany('Posts');
-		$tag = $tam->newEntity(['name'=>'newTag']);
-		$tag->setPosts([$post]);
-
-		$this->assertTrue($tam->save($tag));
-		
-	}
-
-	public function testHasManySave(){
-		$um = MapperRegistry::get('UsersMapper');
-		$um->hasMany('Comments');
-		$user = $um->find()
-			->eager(['Comments'])
-			->resultSet()
-			->first();
-		$comment1 = $user->getComments()[0];
-		$comment1->setBody('modifieeee');
-		
-		$um->save($user);
-	}
 
 }
 

@@ -83,9 +83,9 @@ class ConditionTest extends PHPUnit_Framework_TestCase {
 
 	public function testBelongsToMany(){
 		$pm = MapperRegistry::get('PostsMapper');
-		$pm->belongsToMany('Tags', [
-			'where' => ['id ='=>1]
-		]);
+		$pm->belongsToMany('Tags', function ($assoc){
+				 $assoc->conditions(['where' => ['id ='=>1]]);
+			});
 		
 		$posts = $pm->find()
 			->eager(['Tags'])
@@ -99,9 +99,9 @@ class ConditionTest extends PHPUnit_Framework_TestCase {
 
 	public function testHasMany(){
 		$um = MapperRegistry::get('UsersMapper');
-		$um->hasMany('Comments', [
-			'where' =>['approved ='=>true]
-		]);
+		$um->hasMany('Comments',function ($assoc){
+				 $assoc->conditions(['where' =>['approved ='=>true]]);
+			});
 		$users = $um->find()
 			->lazy(['Comments'])
 			->resultSet()
@@ -111,7 +111,6 @@ class ConditionTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(1, count($user1->getComments()));
 		$this->assertEquals(1, $user1->getComments()[0]->getApproved());
 	}
-
 
 
 

@@ -140,20 +140,36 @@ class BaseMapper implements MapperInterface{
 		$this->associations()->add($targetClass, $assoc);
 	}
 
-	public function hasOne($target, $condition = []){
-		$this->addAssociation($target ,new HasOne($this, $target, $condition));
+	public function hasOne($target, callable $initialize = null){
+		$assoc = new HasOne($this, $target);
+		if($initialize !== null){
+			$initialize($assoc);
+		}
+		$this->addAssociation($target ,$assoc);
 	}
 
-	public function hasMany($target, $condition = []){
-		$this->addAssociation($target ,new HasMany($this, $target, $condition));
+	public function hasMany($target, callable $initialize = null){
+		$assoc = new HasMany($this, $target);
+		if($initialize !== null){
+			$initialize($assoc);
+		}
+		$this->addAssociation($target ,$assoc);
 	}
-	
-	public function belongsTo($target, $condition = []){
-		$this->addAssociation($target ,new BelongsTo($this, $target, $condition));
+
+	public function belongsTo($target, callable $initialize = null){
+		$assoc = new BelongsTo($this, $target);
+		if($initialize !== null){
+			$initialize($assoc);
+		}
+		$this->addAssociation($target ,$assoc);
 	}
-	
-	public function belongsToMany($target, $condition = []){
-		$this->addAssociation($target ,new BelongsToMany($this, $target, $condition));
+
+	public function BelongsToMany($target, callable $initialize = null){
+		$assoc = new BelongsToMany($this, $target);
+		if($initialize !== null){
+			$initialize($assoc);
+		}
+		$this->addAssociation($target ,$assoc);
 	}
 	
 	public function query(){
