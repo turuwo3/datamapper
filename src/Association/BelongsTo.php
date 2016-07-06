@@ -37,6 +37,8 @@ class BelongsTo extends Association {
 		$where = [$id=>$targetIds];
 		$finder = $this->find();
 		$finder->where($where);
+		$this->mergeConditions($finder);
+
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$id];
 			$entity = $this->load($assoc);

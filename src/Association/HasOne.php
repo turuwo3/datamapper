@@ -30,7 +30,8 @@ class HasOne extends Association {
 		$where = [$foreignKey=>$targetIds];
 		$finder = $this->find();
 		$finder->where($where);
-		
+		$this->mergeConditions($finder);
+	
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$foreignKey];
 			$entity = $this->load($assoc);

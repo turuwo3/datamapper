@@ -13,6 +13,13 @@ class Association {
 
 	private $foreignKey;
 
+	private static $defaultConditions = [
+		'where' => null,
+		'order' => null,
+		'limit' => null,
+		'offset' => null,
+	];
+
 	private $conditions = [];
 
 	private $resultMap = [];
@@ -23,7 +30,7 @@ class Association {
 		$this->source = $source;
 		$this->attachName($target);
 		$this->target = $target . 'Mapper';
-		$this->conditions = $conditions;
+		$this->conditions($conditions);
 	}
 
 	public function source(){
@@ -50,8 +57,29 @@ class Association {
 		return $this->foreignKey;
 	}
 
-	public function getConditions(){
+	public function conditions($conditions = null){
+		if($conditions !== null){
+			$merged = array_merge(self::$defaultConditions, $conditions);
+			$this->conditions = $merged;
+		}
+	
 		return $this->conditions;
+	}
+
+	protected function mergeConditions($query){
+		extract($this->conditions);
+		if($where !== null){
+			$query->andWhere($where);
+		}
+		if($limit !== null){
+			$query->limit($limit);
+		}
+		if($limit !== null && $offset !== null){
+			$query->offset($offset);
+		}
+		if($order !== null){
+			$query->order($order);
+		}
 	}
 
 	public function targetEntityClass(){

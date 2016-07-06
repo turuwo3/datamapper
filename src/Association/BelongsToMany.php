@@ -155,9 +155,11 @@ class BelongsToMany extends Association {
 		$id = $this->target()->primaryKey();
 		$whereIn = [$id=>$targetKeys];
 
-		$targetTable = new BufferedStatement($this->find()
-			->where($whereIn)
-			->execute());
+		$finder = $this->find()
+			->where($whereIn);
+		$this->mergeConditions($finder);
+		
+		$targetTable = new BufferedStatement($finder->execute());
 		
 		$sourceKey = $this->sourceKey();
 		foreach($targetTable as $target){
