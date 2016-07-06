@@ -258,6 +258,15 @@ class Query extends DBQuery implements IteratorAggregate{
 		return $this;
 	}
 
+	public function delete($table = null){
+		if($table === null){
+			$table = $this->table();
+		}
+		parent::delete($table);
+
+		return $this;
+	}
+
 }
 
 

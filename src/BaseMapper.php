@@ -269,6 +269,20 @@ class BaseMapper implements MapperInterface{
 		return false;
 	}
 
+	public function delete($entity){
+		if($entity->isNew()){
+			return false;
+		}
+		$id = $entity->getId();
+		$query = $this->query()
+			->delete()
+			->where(['id ='=>$id]);
+		if($query->execute() !== false){
+			return true;
+		}
+		return false;
+	}
+
 }
 
 
