@@ -142,7 +142,7 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
 			->resultSet()
 			->toArray();
 		
-		$this->assertEquals(1, count($tags));
+		$this->assertEquals(3, count($tags));
 	}
 
 
@@ -165,6 +165,29 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
 			->toArray();
 
 		$this->assertEquals(1, count($profiles));
+	}
+
+	public function testHasOneDeleteDependentFalse(){
+		$um = MapperRegistry::get('UsersMapper');
+		$um->hasOne('Profiles', function ($assoc){
+				$assoc->options(['dependent'=>false]);	
+			});
+		$users = $um->find()
+			->lazy(['Profiles'])
+			->resultSet()
+			->toArray();
+		$user = $users[0];
+		
+		$this->assertTrue($um->delete($user));
+
+		$pm = MapperRegistry::get('ProfilesMapper');
+		$pm->belongsTo('Users');
+		
+		$profiles = $pm->find()
+			->resultSet()
+			->toArray();
+
+		$this->assertEquals(2, count($profiles));
 	}
 
 	public function testBelongsToDelete(){
@@ -203,6 +226,27 @@ class DeleteTest extends PHPUnit_Framework_TestCase {
 			->toArray();
 
 		$this->assertEquals(1, count($comments));
+	}
+	
+	public function testHasManyDeleteDependentFalse(){
+		$um = MapperRegistry::get('UsersMapper');
+		$um->hasMany('Comments', function ($assoc){
+				$assoc->options(['dependent'=>false]);	
+			});
+		$users = $um->find()
+			->eager(['Comments'])
+			->resultSet()
+			->toArray();
+		$user = $users[0];
+
+		$this->assertTrue($um->delete($user));
+
+		$cm = MapperRegistry::get('CommentsMapper');
+		$comments = $cm->find()
+			->resultSet()
+			->toArray();
+
+		$this->assertEquals(3, count($comments));
 	}
 
 

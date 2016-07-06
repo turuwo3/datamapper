@@ -80,6 +80,10 @@ class Association {
 		return $this->options;
 	}
 
+	public function isDependent(){
+		return $this->options()['dependent'];
+	}
+
 	protected function mergeConditions($query){
 		extract($this->conditions);
 		if($where !== null){

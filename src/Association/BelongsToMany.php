@@ -128,10 +128,10 @@ class BelongsToMany extends Association {
 	}
 
 	public function delete($entity){
-		if(!$this->deleteTarget($entity)){
+		if(!$this->deleteLinkTable($entity)){
 			return false;
 		}
-		if(!$this->deleteLinkTable($entity)){
+		if(!$this->deleteTarget($entity)){
 			return false;
 		}
 		return true;

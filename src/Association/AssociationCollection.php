@@ -44,6 +44,9 @@ class AssociationCollection {
 	public function delete($entity){
 		$associations = $this->associations;
 		foreach($associations as $assoc){
+			if(!$assoc->isDependent()){
+				continue;
+			}
 			if(!$assoc->delete($entity)){
 				return false;
 			}
