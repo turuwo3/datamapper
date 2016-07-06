@@ -27,6 +27,21 @@ class HasMany extends Association {
 	public function isOwningSide($mapper){
 		return $mapper === $this->source();
 	}
+	
+	public function delete($entity){
+		$targetName = lcfirst($this->attachName());
+		$targetEntities = $entity->{"get{$targetName}"}();
+		if(empty($targetEntities)){
+			return true;
+		}
+		$targetMapper = $this->target();
+		foreach($targetEntities as $targetEntity){
+			if($targetMapper->delete($targetEntity) === false){
+				return false;
+			}
+		}
+		return true;
+	}
 
 	public function loadAssociation($targetIds){
 		$foreignKey = $this->foreignKey();

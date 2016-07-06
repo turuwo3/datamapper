@@ -32,6 +32,20 @@ class BelongsTo extends Association {
 		return $mapper === $this->target();
 	}
 
+	public function delete($entity){
+		$parentName = lcfirst($this->attachName());
+		$parentEntity = $entity->{"get{$parentName}"}();
+		if(empty($parentEntity)){
+			return true;
+		}
+
+		$parentMapper = $this->target();
+		if($parentMapper->delete($parentEntity) !== false){
+			return true;
+		}
+		return false;
+	}
+
 	public function loadAssociation($targetIds){
 		$id = $this->target()->primaryKey();
 		$where = [$id=>$targetIds];

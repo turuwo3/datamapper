@@ -25,6 +25,19 @@ class HasOne extends Association {
 		return $mapper === $this->source(); 
 	}
 
+	public function delete($entity){
+		$targetName = lcfirst($this->attachName());
+		$targetEntity = $entity->{"get{$targetName}"}();
+		if(empty($targetEntity)){
+			return true;
+		}
+		$targetMapper = $this->target();
+		if($targetMapper->delete($targetEntity) !== false){
+			return true;
+		}
+		return false;
+	}
+
 	public function loadAssociation($targetIds){
 		$foreignKey = $this->foreignKey();
 		$where = [$foreignKey=>$targetIds];

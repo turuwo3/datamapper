@@ -10,6 +10,9 @@ use Exception;
 class BelongsToMany extends Association {
 
 	public function save($entity){
+		if(!$this->isDirties($entity)){
+			return true;
+		}
 		if(!$this->saveTarget($entity)){
 			return false;
 		}
@@ -20,6 +23,21 @@ class BelongsToMany extends Association {
 			return false;
 		}
 		return true;
+	}
+
+	private function isDirties($entity){
+		$assoc = $this->attachName();
+		$targetEntities = $entity->{"get{$assoc}"}();
+		if(empty($targetEntities)){
+			return false;
+		}
+		foreach($targetEntities as $targetEntity){
+			if($targetEntity->isDirty() &&
+					$targetEntity->isNew()){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private function saveTarget($entity){
@@ -89,6 +107,32 @@ class BelongsToMany extends Association {
 			if(!$query->execute()){
 				return false;
 			}
+		}
+		return true;
+	}
+
+
+	private function deleteTarget($entity){
+		$assoc = $this->attachName();
+		$targetEntities = $entity->{"get{$assoc}"}();
+		if(empty($targetEntities)){
+			return true;
+		}
+		$targetMapper = $this->target();
+		foreach($targetEntities as $targetEntity){
+			if(!$targetMapper->delete($targetEntity)){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public function delete($entity){
+		if(!$this->deleteTarget($entity)){
+			return false;
+		}
+		if(!$this->deleteLinkTable($entity)){
+			return false;
 		}
 		return true;
 	}

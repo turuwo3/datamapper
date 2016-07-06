@@ -277,8 +277,13 @@ class BaseMapper implements MapperInterface{
 		$query = $this->query()
 			->delete()
 			->where(['id ='=>$id]);
+
 		if($query->execute() !== false){
-			return true;
+			$success = $this->associations()->delete($entity);
+			if($success){
+				$this->setCache($id, null);
+				return true;
+			}
 		}
 		return false;
 	}

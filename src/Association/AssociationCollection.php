@@ -41,8 +41,34 @@ class AssociationCollection {
 		return $this->saveAssociations($mapper, $entity, true);
 	}
 
+	public function delete($entity){
+		$associations = $this->associations;
+		foreach($associations as $assoc){
+			if(!$assoc->delete($entity)){
+				return false;
+			}
+		}
+		return true;
+	}
+	
+
 	public function toArray(){
 		return $this->associations;
 	}
 
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
