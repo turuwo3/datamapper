@@ -32,6 +32,15 @@ class Schema {
 		return $this->columns;
 	}
 
+	public function defaults(){
+		$defaults = [];
+
+		foreach($this->columns as $name => $attr){
+			$defaults[$name] = $attr['default'];
+		}
+
+		return $defaults;
+	}
 
 
 }

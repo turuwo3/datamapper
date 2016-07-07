@@ -26,7 +26,7 @@ class SqliteTest extends PHPUnit_Framework_TestCase {
 		], $schema->column('id'));
 		
 		$this->assertEquals([
-			'type'=>'text',
+			'type'=>'string',
 			'null'=>false,
 			'default'=>null,
 			'primary'=>false			

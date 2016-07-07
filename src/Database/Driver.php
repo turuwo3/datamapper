@@ -166,6 +166,8 @@ abstract class Driver {
 		return $rowCount;
 	}
 
+	abstract protected function convertSchema($statement);
+
 	abstract public function begin();
 
 	abstract public function commit();

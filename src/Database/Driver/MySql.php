@@ -3,6 +3,7 @@ namespace TRW\DataMapper\Database\Driver;
 
 use PDO;
 use TRW\DataMapper\Database\Driver;
+use TRW\DataMapper\Database\Schema;
 
 class MySql extends Driver {
 
@@ -42,16 +43,63 @@ class MySql extends Driver {
 	public function schema($tableName){
 		$sql = "SHOW COLUMNS FROM {$tableName}";
 
-		$stmt = $this->connection->prepare($sql);
-		$stmt->execute();
-		if($stmt !== false){
-			return $stmt->fetchAll();
+		$statement = $this->connection->prepare($sql);
+		$statement->execute();
+
+		if($statement === false){
+			throw new Exception("{$tableName} columns not fount");
 		}
-		return false;
+		$schema = $this->convertSchema($statement);
+
+		return $schema;
+	}
+
+	private function typeConvert($type){
+		if(preg_match('/int\(.*\)/',$type) 
+				|| preg_match('/bigint\(.*\)/', $type)
+				|| preg_match('/tinyint\(.*\)/', $type) ){
+			$result = 'integer';
+		}else if($type === 'float' || $type === 'double'){
+			$result = 'double';
+		}else if(preg_match('/char\(.*\)/', $type) 
+				|| preg_match('/[tiny|midium|long]text/', $type) 
+			 	|| $type === 'text' ){
+			$result = 'string';
+		}else if($type === 'timestamp'){
+			$result = 'datatime';
+		}
+
+		return $result;
 	}
 
 	protected function convertSchema($statement){
-		
+		$schema = new Schema();
+		foreach($statement as $row){
+			$name = $row['Field'];
+			$type = $this->typeConvert($row['Type']);
+			if($row['Null'] === 'NO'){
+				$null = false;
+			}else{
+				$null = true;
+			}
+			$default = $row['Default'];
+			if($row['Key'] === 'PRY'){
+				$primary = true;
+			}else{
+				$primary = false;
+			}
+
+			$attrs = [
+				'type' => $type,
+				'null' => $null,
+				'default' => $default,
+				'primary' => $primary
+			];
+
+			$schema->addColumn($name, $attrs);
+		}
+
+		return $schema;
 	}
 
 	public function getTransactionCounter(){

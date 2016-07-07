@@ -117,7 +117,8 @@ class BaseMapper implements MapperInterface{
 			$this->schema = $schema;
 		}
 		if(empty($this->schema)){
-			$this->schema = new Schema($this);
+			$this->schema = $this->connection()
+				->schema($this->tableName());
 		}
 		return $this->schema;
 	}

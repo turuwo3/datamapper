@@ -45,11 +45,22 @@ class Sqlite extends Driver {
 		return $schema;
 	}
 
+	private function typeConvert($type){
+		if($type === 'text'){
+			$result = 'string';
+		}else if($type === 'real'){
+			$result = 'double';
+		}else{
+			$result = $type;
+		}
+		return $result;
+	}
+
 	protected function convertSchema($statement){
 		$schema = new Schema();
 		foreach($statement as $row){
 			$name = $row['name'];
-			$type = $row['type'];
+			$type = $this->typeConvert($row['type']);
 			$null = (boolean)$row['notnull'];
 			$default = $row['dflt_value'];
 			$primary = (boolean)$row['pk'];

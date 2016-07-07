@@ -22,12 +22,12 @@ class SqliteTest extends PHPUnit_Framework_TestCase {
 			'type'=>'integer',
 			'null'=>false,
 			'default'=>null,
-			'primary'=>true		
+			'primary'=>false		
 		], $schema->column('id'));
 		
 		$this->assertEquals([
-			'type'=>'text',
-			'null'=>false,
+			'type'=>'string',
+			'null'=>true,
 			'default'=>null,
 			'primary'=>false			
 		], $schema->column('name'));
