@@ -179,12 +179,16 @@ class Association {
 		return $this->target()->load($rowData);
 	}
 
-	public function find(){
-		$query = $this->target()->find();
+	public function find($id){
+		if(!is_array($id)){
+			$id = [$id];
+		}
+		$query = $this->target()
+			->find()
+			->where([$this->foreignKey()=>$id]);
 
 		return $query;
 	}
-
 	
 
 }

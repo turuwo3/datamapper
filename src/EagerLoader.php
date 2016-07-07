@@ -62,15 +62,13 @@ class EagerLoader {
 		$targetIds = $this->targetIds($assoc, $statement);
 		$resultMap = $assoc->loadAssociation($targetIds);
 		$id = $assoc->source()->primaryKey();
-		$result = [];
+		$targetIds = [];
 		foreach($resultMap as $foreignKey){
 			foreach($foreignKey as $entity){
-				$result[] = $entity->{$id};
+				$targetIds[] = $entity->{$id};
 			}
 		}
-		$targetIn = [$assoc->foreignKey()=>$result];
-		$finder = $assoc->find()
-			->where($targetIn);
+		$finder = $assoc->find($targetIds);
 	
 		return $finder->execute();
 	}
