@@ -1,7 +1,7 @@
 <?php
 require '../../vendor/autoload.php';
 
-use TRW\DataMapper\Database\Driver\Sqlite;
+use TRW\DataMapper\Database\Driver\MySql;
 
 class SqliteTest extends PHPUnit_Framework_TestCase {
 
@@ -9,12 +9,12 @@ class SqliteTest extends PHPUnit_Framework_TestCase {
 
 	public static function setUpBeforeClass(){
 		$config = require '../config.php';
-		$sqlite = $config['Sqlite'];
-		self::$config = $sqlite;
+		$mysqlConf = $config['MySql'];
+		self::$config = $mysqlConf;
 	}
 
 	public function testSchema(){
-		$sqlite = new Sqlite(self::$config);
+		$sqlite = new MySql(self::$config);
 		
 		$schema = $sqlite->schema('users');
 

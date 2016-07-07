@@ -256,10 +256,11 @@ class BaseMapper implements MapperInterface{
 	}
 
 	private function insert($entity, $query){
-		$query->insert()
+		$fields = $this->schema()->columns();
+		unset($fields[$this->primaryKey()]);
+		$query->insert(array_keys($fields))
 			->into()
 			->values($entity->getProperties());
-
 		$result = $query->execute();
 		if($result !== false){
 			$entity->setId($query->lastInsertId());

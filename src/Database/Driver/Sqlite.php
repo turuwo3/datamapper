@@ -3,6 +3,7 @@ namespace TRW\DataMapper\Database\Driver;
 
 use PDO;
 use TRW\DataMapper\Database\Driver;
+use TRW\DataMapper\Database\Schema;
 
 class Sqlite extends Driver {
 
@@ -12,6 +13,8 @@ class Sqlite extends Driver {
 	protected function connection($config){
 		$dsn = $config['dns'];
 		$this->connection = new PDO($dsn);
+		$this->connection->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+		$this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 	}
 
 	protected function connect(){
@@ -32,29 +35,36 @@ class Sqlite extends Driver {
 	}
 
 	public function schema($tableName){
-		$sql = "SELECT * FROM sqlite_master WHERE type='table' AND name = '{$tableName}'";
+		$sql = "PRAGMA table_info({$tableName})";
 
-		$stmt = $this->connection->prepare($sql);
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$statement = $this->connection->prepare($sql);
+		$statement->execute();
 		
-		preg_match("/CREATE TABLE {$tableName}\((.*)\)/", $result['sql'], $matches);
-		$explode = explode(',', $matches[1]);
-		foreach($explode as $v){
-			$set = explode(' ', trim($v));
-			$trim[0] = trim($set[0]);
-			$trim[1] = trim($set[1]);
-			if($trim[1] === 'serial'){
-				$trim[1] = 'int(255)';
-			}
+		$schema = $this->convertSchema($statement);
+	
+		return $schema;
+	}
 
-			$columns[] = [
-					'Field' => $trim[0],
-				 	'Type' => $trim[1],
-					'Default' => null
-				 ];
+	protected function convertSchema($statement){
+		$schema = new Schema();
+		foreach($statement as $row){
+			$name = $row['name'];
+			$type = $row['type'];
+			$null = (boolean)$row['notnull'];
+			$default = $row['dflt_value'];
+			$primary = (boolean)$row['pk'];
+
+			$attrs = [
+				'type' => $type,
+				'null' => $null,
+				'default' => $default,
+				'primary' => $primary
+			];
+
+			$schema->addColumn($name, $attrs);
 		}
-		return $columns;
+
+		return $schema;
 	}
 
 

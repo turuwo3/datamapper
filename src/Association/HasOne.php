@@ -39,9 +39,8 @@ class HasOne extends Association {
 	}
 
 	public function loadAssociation($targetIds){
-		$finder = $this->find($targetIds);
+		$finder = $this->find($targetIds);	
 		$this->mergeConditions($finder);
-	
 		$foreignKey = $this->foreignKey();
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$foreignKey];

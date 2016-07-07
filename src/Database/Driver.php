@@ -111,7 +111,7 @@ abstract class Driver {
 				$entry['placeHolder'], $entry['value']);
 		}
 		$query->refreshBinder();
-//print_r([$statement, $sql]);
+		
 		return $statement;
 	}
 

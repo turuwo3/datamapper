@@ -51,6 +51,7 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 		$config = require '../config.php';
 		$config['MySql']['dns'] = 'mysql:dbname=datamapper_test;host=localhost;charset=utf8;';
 		self::$driver = new MySql($config['MySql']);
+self::$driver = new \TRW\DataMapper\Database\Driver\Sqlite($config['Sqlite']);
 		MapperRegistry::driver(self::$driver);
 		MapperRegistry::register()->defaultNamespace(null);
 	}
@@ -94,18 +95,17 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 		$user->setProfile($profile);
 
 		$this->assertTrue($um->save($user));
-		
+print_r(self::$driver->query("SELECT * FROM profiles")->fetchAll());		
 		$profile2 = $pm->find()
 			->lazy(['Users'])
 			->orderDesc('id')
 			->limit(1)
 			->resultSet()
 			->first();
-
 		$this->assertSame($profile, $profile2);
 		$this->assertEquals(1, $profile2->getUser_id());
 	}
-
+/*
 	public function testBelongsToSave(){
 		$pm = MapperRegistry::get('ProfilesMapper');
 		$pm->belongsTo('Users');
@@ -154,7 +154,7 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 		
 		$um->save($user);
 	}
-
+*/
 }
 
 

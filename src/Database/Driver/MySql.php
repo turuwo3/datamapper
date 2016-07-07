@@ -50,6 +50,10 @@ class MySql extends Driver {
 		return false;
 	}
 
+	protected function convertSchema($statement){
+		
+	}
+
 	public function getTransactionCounter(){
 		return $this->transactionCounter;
 	}
