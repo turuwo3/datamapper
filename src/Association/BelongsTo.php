@@ -33,12 +33,10 @@ class BelongsTo extends Association {
 	}
 
 	public function loadAssociation($targetIds){
-		$id = $this->target()->primaryKey();
-		$where = [$id=>$targetIds];
-		$finder = $this->find();
-		$finder->where($where);
+		$finder = $this->find($targetIds);
 		$this->mergeConditions($finder);
 
+		$id = $this->target()->primaryKey();
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$id];
 			$entity = $this->load($assoc);
@@ -52,6 +50,19 @@ class BelongsTo extends Association {
 		}
 		return $this->resultMap();
 		
+	}
+/**
+* @override
+*/	
+	public function find($id){
+		if(!is_array($id)){
+			$id = [$id];
+		}
+		$query = $this->target()
+			->find()
+			->where([$this->target()->primaryKey()=>$id]);
+
+		return $query;
 	}
 
 }

@@ -152,16 +152,14 @@ class BelongsToMany extends Association {
 		foreach($linkTable as $row){
 			$targetKeys[] = $row[$targetKey];
 		}
-		$id = $this->target()->primaryKey();
-		$whereIn = [$id=>$targetKeys];
 
-		$finder = $this->find()
-			->where($whereIn);
+		$finder = $this->find($targetKeys);
 		$this->mergeConditions($finder);
 		
 		$targetTable = new BufferedStatement($finder->execute());
 		
 		$sourceKey = $this->sourceKey();
+		$id = $this->target()->primaryKey();
 		foreach($targetTable as $target){
 			$entity = $this->load($target);
 			
@@ -182,7 +180,19 @@ class BelongsToMany extends Association {
 		}
 		return $this->resultMap();
 	}
+/**
+* @override
+*/
+	public function find($id){
+		if(!is_array($id)){
+			$id = [$id];
+		}
+		$query = $this->target()
+			->find()
+			->where([$this->target()->primaryKey()=>$id]);
 
+		return $query;
+	}
 
 
 }

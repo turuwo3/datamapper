@@ -29,12 +29,10 @@ class HasMany extends Association {
 	}
 
 	public function loadAssociation($targetIds){
-		$foreignKey = $this->foreignKey();
-		$where = [$foreignKey=>$targetIds];
-		$finder = $this->find();
-		$finder->where($where);
+		$finder = $this->find($targetIds);
 		$this->mergeConditions($finder);
 
+		$foreignKey = $this->foreignKey();
 		foreach($finder->execute() as $assoc){
 			$key = $assoc[$foreignKey];
 			$entity = $this->load($assoc);
