@@ -102,8 +102,11 @@ class Schema {
 */
 	public function schema(){
 		if(empty($this->schema)){
-			 $schema = $this->driver->query("SHOW COLUMNS FROM {$this->table}");
-			 $this->schema = $schema->fetchAll();
+			 //$schema = $this->driver->query("SHOW COLUMNS FROM {$this->table}");
+			 $schema = $this->driver->schema($this->table);
+			 //$this->schema = $schema->fetchAll();
+		//print_r($schema);
+			 $this->schema = $schema;
 		}
 		return $this->schema;
 	}
@@ -145,7 +148,7 @@ class Schema {
 
 			$this->columns = $result;
 		}
-					
+
 		return $this->columns;
 	}
 

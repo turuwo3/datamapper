@@ -41,6 +41,7 @@ class MySql extends Driver {
 
 	public function schema($tableName){
 		$sql = "SHOW COLUMNS FROM {$tableName}";
+
 		$stmt = $this->connection->prepare($sql);
 		$stmt->execute();
 		if($stmt !== false){

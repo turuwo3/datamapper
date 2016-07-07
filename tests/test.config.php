@@ -7,5 +7,8 @@ return  [
 		'user'=>'****',
 		'password'=>'****'
 	],
+	'Sqlite'=>[
+		'dns'=>'sqlite:test.sqlite'
+	]
 
 ];
