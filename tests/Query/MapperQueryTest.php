@@ -42,7 +42,7 @@ class MockMapper implements MapperInterface {
 		return 'users';
 	}
 	public function fields(){
-		return ['id', 'name', 'age'];
+		return ['id', 'name'];
 	}
 	public function schema($schema = null){
 		return [];
@@ -101,8 +101,8 @@ class MapperQueryTest extends PHPUnit_Framework_TestCase {
 		$d->query("DELETE FROM users");
 		$d->query("DELETE FROM comments");
 	
-		$d->query("INSERT INTO users (id, name, age) VALUES 
-			(1, 'foo', 10), (2, 'bar', 20), (3, 'hoge', 30)");
+		$d->query("INSERT INTO users (id, name) VALUES 
+			(1, 'foo'), (2, 'bar'), (3, 'hoge')");
 		$d->query("INSERT INTO comments (id, text, user_id) VALUES 
 			(1, 'foo comment', 1), (2, 'foo comment', 1),(3, 'bar comment', 2)");
 	}
@@ -113,7 +113,7 @@ class MapperQueryTest extends PHPUnit_Framework_TestCase {
 		$query->find()
 			->where(['id ='=>1]);
 		$this->assertEquals(
-			"SELECT id,name,age FROM users WHERE (id = :c0)"
+			"SELECT id,name FROM users WHERE (id = :c0)"
 			,$query->sql());
 		
 		$result = $query->execute();
@@ -122,7 +122,6 @@ class MapperQueryTest extends PHPUnit_Framework_TestCase {
 			[
 				'id'=>1,
 				'name'=>'foo',
-				'age'=>10
 			]
 		],$result->fetchAll());
 	}
