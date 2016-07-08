@@ -22,12 +22,13 @@ class Sqlite extends Driver {
 	}
 
 	public function tableExists($tableName){
-		$query = "SELECT * FROM sqlite_master WHERE type='table'";	
+		$query = "SELECT * FROM
+			 sqlite_master WHERE type='table' and name = '{$tableName}'";	
 		$statement = $this->connection->prepare($query);
 		$statement->execute();
 
-		$result = $statement->fetch(PDO::FETCH_ASSOC);
-		if(count($result) !== false){
+		$result = $statement->fetchAll(PDO::FETCH_ASSOC);
+		if(count($result) !== 0){
 			return true;
 		}else{
 			return false;

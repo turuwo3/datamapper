@@ -23,8 +23,8 @@ class MapperTest extends \PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass(){
 		$config = require '../config.php';
 self::$driver =
-//new TRW\DataMapper\Database\Driver\Sqlite($config['Sqlite']);
-		self::$driver = new MySql($config['MySql']);
+new TRW\DataMapper\Database\Driver\Sqlite($config['Sqlite']);
+//		self::$driver = new MySql($config['MySql']);
 		MapperRegistry::driver(self::$driver);
 	}
 

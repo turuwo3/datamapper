@@ -3,7 +3,7 @@
 return  [
 
 	'MySql'=>[
-		'dns'=>'mysql:dbname=test;host=localhost;charset=utf8',
+		'dns'=>'mysql:dbname=datamapper_test;host=localhost;charset=utf8',
 		'user'=>'****',
 		'password'=>'****'
 	],

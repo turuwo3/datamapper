@@ -165,9 +165,10 @@ class BelongsToMany extends Association {
 	private function getLinkStatement($targetIds){
 		$sourceKey = $this->sourceKey();
 		$where = [$sourceKey=>$targetIds];
+		$linkTable = $this->linkTable();
 		$dbquery = $this->newDbQuery();
 		$dbquery->select(['*'])
-			->from($this->linkTable())
+			->from($linkTable)
 			->where($where);
 		$linkTableStatement = $dbquery->execute();
 		return $linkTableStatement;		

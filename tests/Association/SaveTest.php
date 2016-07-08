@@ -49,9 +49,8 @@ class SaveTest extends PHPUnit_Framework_TestCase {
 
 	public static function setUpBeforeClass(){
 		$config = require '../config.php';
-		$config['MySql']['dns'] = 'mysql:dbname=datamapper_test;host=localhost;charset=utf8;';
-//		self::$driver = new MySql($config['MySql']);
-self::$driver = new \TRW\DataMapper\Database\Driver\Sqlite($config['Sqlite']);
+		//self::$driver = new MySql($config['MySql']);
+		self::$driver = new \TRW\DataMapper\Database\Driver\Sqlite($config['Sqlite']);
 		MapperRegistry::driver(self::$driver);
 		MapperRegistry::register()->defaultNamespace(null);
 	}
